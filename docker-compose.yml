@@ -1,0 +1,38 @@
+version: "3.9"
+
+services:
+  rag-chat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: rag-chat
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # ── Auth ──────────────────────────────────
+      LOGIN_USERNAME:  ${LOGIN_USERNAME:-admin}
+      LOGIN_PASSWORD:  ${LOGIN_PASSWORD:-admin123}
+      SESSION_SECRET:  ${SESSION_SECRET:-change-me-please}
+      # ── LLM ───────────────────────────────────
+      LLM_PROVIDER:    ${LLM_PROVIDER:-anthropic}
+      LLM_MODEL:       ${LLM_MODEL:-claude-sonnet-4-6}
+      LLM_API_KEY:     ${LLM_API_KEY:-}
+      # ── RAG ───────────────────────────────────
+      CHUNK_SIZE:      ${CHUNK_SIZE:-512}
+      CHUNK_OVERLAP:   ${CHUNK_OVERLAP:-50}
+      TOP_K:           ${TOP_K:-3}
+      NODE_ENV:        production
+    volumes:
+      # Persist database, vectors, and downloaded model weights
+      - rag_data:/app/data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/categories"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  rag_data:
+    driver: local
