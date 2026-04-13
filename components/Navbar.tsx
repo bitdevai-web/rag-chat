@@ -47,8 +47,12 @@ export default function Navbar() {
           <Link href="/dashboard" className="hover:text-gray-900 transition-colors">
             My Knowledge Bases
           </Link>
-          <span className="hover:text-gray-900 transition-colors cursor-default">Browse Features</span>
-          <span className="hover:text-gray-900 transition-colors cursor-default">Get Support</span>
+          <Link href="/features" className="hover:text-gray-900 transition-colors">
+            Browse Features
+          </Link>
+          <Link href="/support" className="hover:text-gray-900 transition-colors">
+            Get Support
+          </Link>
         </div>
 
         {/* User */}
