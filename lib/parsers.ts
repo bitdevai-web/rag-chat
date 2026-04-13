@@ -57,9 +57,10 @@ export async function extractText(
     for (const entry of slideEntries) {
       const xml = entry.getData().toString("utf-8");
       // Extract text from <a:t> tags (DrawingML text elements)
-      const matches = xml.matchAll(/<a:t[^>]*>([^<]+)<\/a:t>/g);
+      const re = /<a:t[^>]*>([^<]+)<\/a:t>/g;
       const texts: string[] = [];
-      for (const m of matches) {
+      let m: RegExpExecArray | null;
+      while ((m = re.exec(xml)) !== null) {
         const t = m[1].trim();
         if (t) texts.push(t);
       }
