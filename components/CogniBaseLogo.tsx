@@ -13,16 +13,11 @@ export function CogniBaseLogo({
   if (variant === "white") {
     return (
       <svg width={size} height={size} viewBox="0 0 100 100" fill="none">
-        <path
-          fillRule="evenodd"
-          clipRule="evenodd"
-          d="M50 4a46 46 0 1 1 0 92A28 28 0 1 0 50 4z"
-          fill="white"
-          opacity="0.95"
-        />
-        <path d="M46 50 A14 14 0 0 1 60 50" stroke="white" strokeWidth="6" strokeLinecap="round" fill="none" opacity="0.4"/>
-        <path d="M46 50 A24 24 0 0 1 70 50" stroke="white" strokeWidth="6" strokeLinecap="round" fill="none" opacity="0.3"/>
-        <path d="M46 50 A35 35 0 0 1 81 50" stroke="white" strokeWidth="6" strokeLinecap="round" fill="none" opacity="0.2"/>
+        {/* 4 concentric stroke arcs — white variant */}
+        <path d="M22 88 A52 52 0 1 0 22 12" stroke="white" strokeWidth="9" strokeLinecap="round" fill="none" opacity="1" />
+        <path d="M34 78 A37 37 0 1 0 34 22" stroke="white" strokeWidth="9" strokeLinecap="round" fill="none" opacity="0.8" />
+        <path d="M44 68 A24 24 0 1 0 44 32" stroke="white" strokeWidth="9" strokeLinecap="round" fill="none" opacity="0.65" />
+        <path d="M52 61 A13 13 0 1 0 52 39" stroke="white" strokeWidth="9" strokeLinecap="round" fill="none" opacity="0.5" />
       </svg>
     );
   }
@@ -30,22 +25,16 @@ export function CogniBaseLogo({
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" fill="none">
       <defs>
-        <linearGradient id={id} x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#22D3EE" />
-          <stop offset="1" stopColor="#7C3AED" />
+        <linearGradient id={id} x1="0" y1="50" x2="65" y2="50" gradientUnits="userSpaceOnUse">
+          <stop stopColor="#00CFFF" />
+          <stop offset="1" stopColor="#6060EE" />
         </linearGradient>
       </defs>
-      {/* Crescent moon */}
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M50 4a46 46 0 1 1 0 92A28 28 0 1 0 50 4z"
-        fill={`url(#${id})`}
-      />
-      {/* WiFi-style arcs */}
-      <path d="M46 50 A14 14 0 0 1 60 50" stroke="white" strokeWidth="6" strokeLinecap="round" fill="none" />
-      <path d="M46 50 A24 24 0 0 1 70 50" stroke="white" strokeWidth="6" strokeLinecap="round" fill="none" opacity="0.75" />
-      <path d="M46 50 A35 35 0 0 1 81 50" stroke="white" strokeWidth="6" strokeLinecap="round" fill="none" opacity="0.5" />
+      {/* 4 concentric stroke arcs — large-arc flag=1, sweep=0 (counterclockwise open-right C-shape) */}
+      <path d="M22 88 A52 52 0 1 0 22 12" stroke={`url(#${id})`} strokeWidth="9" strokeLinecap="round" fill="none" />
+      <path d="M34 78 A37 37 0 1 0 34 22" stroke={`url(#${id})`} strokeWidth="9" strokeLinecap="round" fill="none" />
+      <path d="M44 68 A24 24 0 1 0 44 32" stroke={`url(#${id})`} strokeWidth="9" strokeLinecap="round" fill="none" />
+      <path d="M52 61 A13 13 0 1 0 52 39" stroke={`url(#${id})`} strokeWidth="9" strokeLinecap="round" fill="none" />
     </svg>
   );
 }
