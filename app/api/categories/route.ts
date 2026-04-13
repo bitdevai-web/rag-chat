@@ -3,19 +3,19 @@ import { getDb } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
-type Category = { id: number; name: string; created_at: string };
+type Category = { id: number; name: string; description: string; summary: string | null; created_at: string };
 type DocCount = { category_id: number; count: number };
 
 export async function GET() {
   try {
     const db = getDb();
     const categories = db
-      .prepare("SELECT id, name, created_at FROM categories ORDER BY name")
+      .prepare("SELECT id, name, description, summary, created_at FROM categories ORDER BY created_at DESC")
       .all() as Category[];
 
     const counts = db
       .prepare(
-        "SELECT category_id, COUNT(*) as count FROM documents WHERE status = 'ready' GROUP BY category_id"
+        "SELECT category_id, COUNT(*) as count FROM documents GROUP BY category_id"
       )
       .all() as DocCount[];
 
@@ -31,17 +31,17 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const { name } = await req.json();
+    const { name, description } = await req.json();
     if (!name?.trim())
       return NextResponse.json({ error: "Name required" }, { status: 400 });
 
     const db = getDb();
     const result = db
-      .prepare("INSERT OR IGNORE INTO categories (name) VALUES (?)")
-      .run(name.trim());
+      .prepare("INSERT OR IGNORE INTO categories (name, description) VALUES (?, ?)")
+      .run(name.trim(), description?.trim() ?? "");
 
     const cat = db
-      .prepare("SELECT id, name, created_at FROM categories WHERE name = ?")
+      .prepare("SELECT id, name, description, summary, created_at FROM categories WHERE name = ?")
       .get(name.trim()) as Category;
 
     return NextResponse.json(

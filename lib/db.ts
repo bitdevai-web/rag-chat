@@ -9,7 +9,6 @@ if (!fs.existsSync(DB_DIR)) {
   fs.mkdirSync(DB_DIR, { recursive: true });
 }
 
-// Singleton across hot-reloads in dev
 const globalDb = global as unknown as { __db?: Database.Database };
 
 function init(db: Database.Database) {
@@ -23,9 +22,11 @@ function init(db: Database.Database) {
     );
 
     CREATE TABLE IF NOT EXISTS categories (
-      id         INTEGER PRIMARY KEY AUTOINCREMENT,
-      name       TEXT    UNIQUE NOT NULL,
-      created_at TEXT    DEFAULT (datetime('now'))
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      name        TEXT    UNIQUE NOT NULL,
+      description TEXT    DEFAULT '',
+      summary     TEXT    DEFAULT NULL,
+      created_at  TEXT    DEFAULT (datetime('now'))
     );
 
     CREATE TABLE IF NOT EXISTS documents (
@@ -49,13 +50,9 @@ function init(db: Database.Database) {
     );
   `);
 
-  // Seed default categories
-  const insert = db.prepare(
-    "INSERT OR IGNORE INTO categories (name) VALUES (?)"
-  );
-  ["Legal", "Finance", "HR", "Technical", "General"].forEach((n) =>
-    insert.run(n)
-  );
+  // Migrate existing categories table (add columns if missing)
+  try { db.exec("ALTER TABLE categories ADD COLUMN description TEXT DEFAULT ''"); } catch {}
+  try { db.exec("ALTER TABLE categories ADD COLUMN summary TEXT DEFAULT NULL"); } catch {}
 }
 
 export function getDb(): Database.Database {
