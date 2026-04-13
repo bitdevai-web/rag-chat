@@ -38,7 +38,7 @@ export async function POST(
     }
 
     const context = chunks
-      .map((c, i) => `[${i + 1}] From ${c.file}:\n${c.excerpt}`)
+      .map((c, i) => `[${i + 1}] From ${c.filename}:\n${c.content}`)
       .join("\n\n");
 
     const prompt = `You are summarizing a knowledge base called "${cat.name}". Based on the document excerpts below, write a comprehensive summary covering:
