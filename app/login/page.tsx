@@ -1,7 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bot, Eye, EyeOff, Loader2, AlertCircle, Lock, User } from "lucide-react";
+import { Eye, EyeOff, Loader2, AlertCircle, Lock, User } from "lucide-react";
+import { CogniBaseLogo } from "@/components/CogniBaseLogo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -40,25 +41,25 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-violet-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
 
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-indigo-600 shadow-lg shadow-indigo-200 mb-4">
-            <Bot size={32} className="text-white" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-violet-600 shadow-lg shadow-blue-200 mb-4">
+            <CogniBaseLogo size={36} />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">RAG Chat</h1>
-          <p className="text-sm text-gray-500 mt-1">Sign in to your workspace</p>
+          <h1 className="text-2xl font-bold text-gray-900">CogniBase</h1>
+          <p className="text-sm text-gray-500 mt-1">Your intelligent document companion</p>
         </div>
 
         {/* Card */}
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
 
           {/* Default credentials hint */}
-          <div className="flex items-start gap-2 bg-indigo-50 border border-indigo-100 rounded-xl px-4 py-3 mb-6">
-            <Lock size={14} className="text-indigo-500 mt-0.5 flex-shrink-0" />
-            <div className="text-xs text-indigo-700">
+          <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 mb-6">
+            <Lock size={14} className="text-blue-500 mt-0.5 flex-shrink-0" />
+            <div className="text-xs text-blue-700">
               <span className="font-semibold">Default credentials</span>
               <br />
               Username: <span className="font-mono font-semibold">admin</span>
@@ -71,7 +72,7 @@ export default function LoginPage() {
             {/* Username */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-gray-700">Username</label>
-              <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
+              <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
                 <User size={15} className="text-gray-400 mr-2 flex-shrink-0" />
                 <input
                   type="text"
@@ -88,7 +89,7 @@ export default function LoginPage() {
             {/* Password */}
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-gray-700">Password</label>
-              <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
+              <div className="flex items-center bg-gray-50 border border-gray-200 rounded-xl px-3 py-3 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
                 <Lock size={15} className="text-gray-400 mr-2 flex-shrink-0" />
                 <input
                   type={showPw ? "text" : "password"}
@@ -121,7 +122,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading || !username || !password}
-              className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-sm py-3 rounded-xl transition-colors shadow-sm shadow-indigo-200"
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-violet-600 hover:from-blue-600 hover:to-violet-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-sm py-3 rounded-xl transition-all shadow-sm shadow-blue-200"
             >
               {loading ? (
                 <><Loader2 size={15} className="animate-spin" /> Signing in…</>
@@ -133,7 +134,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-xs text-gray-400 mt-6">
-          RAG Chat · Local AI Document Assistant
+          CogniBase · Intelligent Document Companion
         </p>
       </div>
     </div>

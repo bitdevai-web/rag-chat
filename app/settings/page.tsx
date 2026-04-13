@@ -17,14 +17,14 @@ const PROVIDERS = [
     name: "Anthropic",
     models: ["claude-sonnet-4-6", "claude-opus-4-6", "claude-haiku-4-5-20251001"],
     placeholder: "sk-ant-api03-…",
-    note: "Used for chat. Embeddings run locally — no extra key needed.",
+    note: "Used for chat completions. Embeddings run locally — no extra key needed.",
   },
   {
     id: "openai",
     name: "OpenAI",
     models: ["gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo"],
     placeholder: "sk-proj-…",
-    note: "Used for chat. Embeddings run locally — no extra key needed.",
+    note: "Used for chat completions. Embeddings run locally — no extra key needed.",
   },
 ];
 
@@ -102,7 +102,7 @@ function Dropdown({
                 setOpen(false);
               }}
               className={`w-full text-left px-4 py-2.5 text-sm font-mono hover:bg-gray-50 transition-colors ${
-                o === value ? "text-indigo-700 font-semibold" : "text-gray-700"
+                o === value ? "text-blue-700 font-semibold" : "text-gray-700"
               }`}
             >
               {o}
@@ -140,7 +140,6 @@ export default function SettingsPage() {
             setModel(data.llm_model);
           else setModel(p.models[0]);
         }
-        // Keys are masked from server — show placeholder if set
         if (data.llm_api_key) setApiKey(data.llm_api_key);
         if (data.chunk_size) setChunkSize(parseInt(data.chunk_size));
         if (data.chunk_overlap) setOverlap(parseInt(data.chunk_overlap));
@@ -191,7 +190,6 @@ export default function SettingsPage() {
         chunk_overlap: overlap,
         top_k: topK,
       };
-      // Only send key if it looks like a real key (not masked bullets)
       if (apiKey && !apiKey.startsWith("•")) body.llm_api_key = apiKey;
 
       const res = await fetch("/api/settings", {
@@ -216,7 +214,7 @@ export default function SettingsPage() {
   if (!loaded) {
     return (
       <div className="flex items-center justify-center h-full">
-        <Loader2 size={24} className="animate-spin text-indigo-500" />
+        <Loader2 size={24} className="animate-spin text-blue-500" />
       </div>
     );
   }
@@ -226,7 +224,7 @@ export default function SettingsPage() {
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <h1 className="text-base font-semibold text-gray-900">Settings</h1>
         <p className="text-xs text-gray-500 mt-0.5">
-          Configure your LLM provider and RAG parameters
+          Configure your LLM provider and CogniBase RAG parameters
         </p>
       </div>
 
@@ -234,7 +232,7 @@ export default function SettingsPage() {
         {/* LLM Provider */}
         <Section
           title="LLM Provider"
-          description="Choose your AI provider and configure your API keys"
+          description="Choose your AI provider for chat completions"
         >
           <Field label="Provider">
             <div className="relative">
@@ -249,17 +247,15 @@ export default function SettingsPage() {
                 {provider.name}
                 <ChevronDown size={14} />
               </button>
-              <div className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-20 py-1 hidden group-focus-within:block">
-              </div>
             </div>
             <div className="flex gap-2 mt-2">
               {PROVIDERS.map((p) => (
                 <button
                   key={p.id}
                   onClick={() => selectProvider(p)}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                  className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${
                     p.id === provider.id
-                      ? "bg-indigo-600 text-white border-indigo-600"
+                      ? "bg-gradient-to-r from-blue-500 to-violet-600 text-white border-transparent"
                       : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
                   }`}
                 >
@@ -267,7 +263,7 @@ export default function SettingsPage() {
                 </button>
               ))}
             </div>
-            <p className="text-xs text-indigo-600 mt-1.5 bg-indigo-50 rounded-lg px-3 py-2">
+            <p className="text-xs text-blue-600 mt-1.5 bg-blue-50 rounded-lg px-3 py-2">
               {provider.note}
             </p>
           </Field>
@@ -284,7 +280,7 @@ export default function SettingsPage() {
             label="LLM API Key"
             hint="Used for chat completions. Stored locally in SQLite."
           >
-            <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
+            <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
               <Key size={14} className="text-gray-400 mr-2 flex-shrink-0" />
               <input
                 type={showKey ? "text" : "password"}
@@ -345,7 +341,7 @@ export default function SettingsPage() {
         {/* RAG Parameters */}
         <Section
           title="RAG Parameters"
-          description="Tune how documents are chunked and retrieved"
+          description="Tune how CogniBase chunks and retrieves document content"
         >
           <Field
             label={`Chunk Size — ${chunkSize} words`}
@@ -358,7 +354,7 @@ export default function SettingsPage() {
               step={64}
               value={chunkSize}
               onChange={(e) => setChunkSize(Number(e.target.value))}
-              className="w-full accent-indigo-600"
+              className="w-full accent-blue-600"
             />
             <div className="flex justify-between text-xs text-gray-400">
               <span>64</span>
@@ -377,7 +373,7 @@ export default function SettingsPage() {
               step={16}
               value={overlap}
               onChange={(e) => setOverlap(Number(e.target.value))}
-              className="w-full accent-indigo-600"
+              className="w-full accent-blue-600"
             />
             <div className="flex justify-between text-xs text-gray-400">
               <span>0</span>
@@ -387,7 +383,7 @@ export default function SettingsPage() {
 
           <Field
             label={`Top-K Results — ${topK}`}
-            hint="Number of chunks retrieved per query and sent to the LLM."
+            hint="Number of document chunks retrieved per query and sent to the LLM."
           >
             <input
               type="range"
@@ -396,7 +392,7 @@ export default function SettingsPage() {
               step={1}
               value={topK}
               onChange={(e) => setTopK(Number(e.target.value))}
-              className="w-full accent-indigo-600"
+              className="w-full accent-blue-600"
             />
             <div className="flex justify-between text-xs text-gray-400">
               <span>1</span>
@@ -417,7 +413,7 @@ export default function SettingsPage() {
           <button
             onClick={saveSettings}
             disabled={saving}
-            className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-colors"
+            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-violet-600 hover:from-blue-600 hover:to-violet-700 disabled:opacity-60 text-white text-sm font-medium rounded-lg transition-all"
           >
             {saving ? (
               <Loader2 size={15} className="animate-spin" />

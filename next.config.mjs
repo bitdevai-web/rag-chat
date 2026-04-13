@@ -12,6 +12,8 @@ const nextConfig = {
       "onnxruntime-node",
       "mammoth",
       "pdf-parse",
+      "adm-zip",
+      "xlsx",
     ],
   },
 
@@ -35,6 +37,8 @@ const nextConfig = {
         "better-sqlite3",
         "mammoth",
         "pdf-parse",
+        "adm-zip",
+        "xlsx",
       ];
 
       config.externals = [

@@ -17,6 +17,9 @@ import {
 
 const MAX_DOCS = 3;
 
+const ACCEPTED_TYPES = ".pdf,.docx,.txt,.md,.pptx,.xlsx,.csv";
+const ACCEPTED_LABEL = "PDF, DOCX, PPTX, XLSX, TXT";
+
 type Category = { id: number; name: string; doc_count: number };
 type DocStatus = "ready" | "processing" | "error";
 type Doc = {
@@ -86,7 +89,6 @@ export default function DocumentsPage() {
       const data: Doc[] = await res.json();
       setDocs(Array.isArray(data) ? data : []);
 
-      // Track processing docs for polling
       const processing = data
         .filter((d) => d.status === "processing")
         .map((d) => d.id);
@@ -106,7 +108,6 @@ export default function DocumentsPage() {
     if (activeCategory) loadDocs(activeCategory.name);
   }, [activeCategory?.name]);
 
-  // Poll for processing documents
   useEffect(() => {
     if (pollingIds.size === 0) {
       if (pollRef.current) clearInterval(pollRef.current);
@@ -158,7 +159,7 @@ export default function DocumentsPage() {
       await fetch(`/api/documents/${id}`, { method: "DELETE" });
       setDocs((d) => d.filter((dd) => dd.id !== id));
       if (activeCategory) {
-        await loadCategories(); // update doc_count
+        await loadCategories();
       }
     } catch {}
   };
@@ -194,7 +195,7 @@ export default function DocumentsPage() {
         <div>
           <h1 className="text-base font-semibold text-gray-900">Documents</h1>
           <p className="text-xs text-gray-500 mt-0.5">
-            Upload and manage documents per category (max {MAX_DOCS})
+            Upload documents and CogniBase will index them for instant Q&amp;A (max {MAX_DOCS} per category)
           </p>
         </div>
 
@@ -212,11 +213,11 @@ export default function DocumentsPage() {
                     }}
                     onKeyDown={(e) => e.key === "Enter" && addCategory()}
                     placeholder="Category name"
-                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-indigo-400 w-40"
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-blue-400 w-40"
                   />
                   <button
                     onClick={addCategory}
-                    className="p-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
+                    className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 text-white hover:from-blue-600 hover:to-violet-700"
                   >
                     <Plus size={14} />
                   </button>
@@ -238,7 +239,7 @@ export default function DocumentsPage() {
           ) : (
             <button
               onClick={() => setShowNewCat(true)}
-              className="flex items-center gap-1.5 text-sm text-indigo-600 hover:text-indigo-800 font-medium px-3 py-2 rounded-lg hover:bg-indigo-50 transition-colors"
+              className="flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 font-medium px-3 py-2 rounded-lg hover:bg-blue-50 transition-colors"
             >
               <Plus size={14} /> New Category
             </button>
@@ -249,7 +250,7 @@ export default function DocumentsPage() {
               onClick={() => setCategoryOpen((o) => !o)}
               className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
             >
-              <FolderOpen size={15} className="text-indigo-500" />
+              <FolderOpen size={15} className="text-blue-500" />
               {activeCategory?.name ?? "Select…"}
               <ChevronDown
                 size={14}
@@ -267,7 +268,7 @@ export default function DocumentsPage() {
                     }}
                     className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-gray-50 ${
                       c.id === activeCategory?.id
-                        ? "text-indigo-700 font-medium"
+                        ? "text-blue-700 font-medium"
                         : "text-gray-700"
                     }`}
                   >
@@ -315,31 +316,31 @@ export default function DocumentsPage() {
             atLimit || uploading
               ? "border-gray-200 bg-gray-50 cursor-not-allowed opacity-60"
               : dragging
-              ? "border-indigo-400 bg-indigo-50"
-              : "border-gray-300 hover:border-indigo-300 hover:bg-indigo-50/30"
+              ? "border-blue-400 bg-blue-50"
+              : "border-gray-300 hover:border-blue-300 hover:bg-blue-50/30"
           }`}
         >
-          <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center mb-3">
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-3 ${dragging ? "bg-blue-200" : "bg-blue-100"}`}>
             {uploading ? (
-              <Loader2 size={22} className="text-indigo-600 animate-spin" />
+              <Loader2 size={22} className="text-blue-600 animate-spin" />
             ) : (
-              <Upload size={22} className="text-indigo-600" />
+              <Upload size={22} className="text-blue-600" />
             )}
           </div>
           <p className="text-sm font-medium text-gray-800">
             {uploading
-              ? "Uploading…"
+              ? "Uploading & indexing…"
               : atLimit
               ? `Limit reached (${MAX_DOCS} docs max per category)`
               : "Drop files here or click to upload"}
           </p>
           <p className="text-xs text-gray-400 mt-1">
-            PDF, DOCX, TXT — up to {MAX_DOCS} per category
+            {ACCEPTED_LABEL} — up to {MAX_DOCS} per category
           </p>
           <div className="mt-3 flex items-center gap-2">
             <div className="h-1.5 w-32 bg-gray-200 rounded-full overflow-hidden">
               <div
-                className="h-full bg-indigo-500 rounded-full transition-all"
+                className="h-full bg-gradient-to-r from-blue-500 to-violet-500 rounded-full transition-all"
                 style={{ width: `${(docs.length / MAX_DOCS) * 100}%` }}
               />
             </div>
@@ -351,7 +352,7 @@ export default function DocumentsPage() {
             ref={fileRef}
             type="file"
             multiple
-            accept=".pdf,.docx,.txt"
+            accept={ACCEPTED_TYPES}
             className="hidden"
             onChange={(e) => handleFiles(e.target.files)}
           />
@@ -367,7 +368,7 @@ export default function DocumentsPage() {
               {pollingIds.size > 0 && (
                 <span className="flex items-center gap-1 text-xs text-amber-600">
                   <RefreshCw size={11} className="animate-spin" />
-                  Processing…
+                  Indexing…
                 </span>
               )}
             </div>
@@ -377,8 +378,8 @@ export default function DocumentsPage() {
                   key={doc.id}
                   className="flex items-center gap-4 bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-gray-300 transition-colors"
                 >
-                  <div className="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center flex-shrink-0">
-                    <FileText size={18} className="text-indigo-500" />
+                  <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
+                    <FileText size={18} className="text-blue-500" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-800 truncate">
@@ -411,7 +412,7 @@ export default function DocumentsPage() {
               <span className="font-medium">{activeCategory.name}</span> yet
             </p>
             <p className="text-xs text-gray-400 mt-1">
-              Upload up to {MAX_DOCS} documents to get started
+              Upload up to {MAX_DOCS} documents — CogniBase will index them automatically
             </p>
           </div>
         )}

@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { MessageSquare, FolderOpen, Settings, Bot, LogOut } from "lucide-react";
+import { MessageSquare, FolderOpen, Settings, LogOut } from "lucide-react";
 import { useState } from "react";
+import { CogniBaseLogo } from "./CogniBaseLogo";
 
 const nav = [
   { href: "/chat",      label: "Chat",      icon: MessageSquare },
@@ -25,11 +26,9 @@ export default function Sidebar() {
   return (
     <aside className="w-56 bg-white border-r border-gray-200 flex flex-col">
       {/* Logo */}
-      <div className="flex items-center gap-2 px-5 py-5 border-b border-gray-100">
-        <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
-          <Bot size={18} className="text-white" />
-        </div>
-        <span className="font-semibold text-gray-900 text-sm">RAG Chat</span>
+      <div className="flex items-center gap-2.5 px-5 py-5 border-b border-gray-100">
+        <CogniBaseLogo size={30} />
+        <span className="font-bold text-gray-900 text-sm tracking-tight">CogniBase</span>
       </div>
 
       {/* Nav */}
@@ -42,7 +41,7 @@ export default function Sidebar() {
               href={href}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 active
-                  ? "bg-indigo-50 text-indigo-700"
+                  ? "bg-blue-50 text-blue-700"
                   : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
               }`}
             >
@@ -63,7 +62,7 @@ export default function Sidebar() {
           <LogOut size={17} />
           {loggingOut ? "Signing out…" : "Sign Out"}
         </button>
-        <p className="text-xs text-gray-400 px-3 pt-1">RAG Chat v1.0</p>
+        <p className="text-xs text-gray-400 px-3 pt-1">CogniBase v1.0</p>
       </div>
     </aside>
   );

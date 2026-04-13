@@ -3,12 +3,12 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import {
   Send,
   ChevronDown,
-  Bot,
   User,
   FileText,
   Loader2,
   AlertCircle,
 } from "lucide-react";
+import { CogniBaseLogo } from "@/components/CogniBaseLogo";
 
 type Category = { id: number; name: string; doc_count: number };
 
@@ -94,7 +94,6 @@ export default function ChatPage() {
         body: JSON.stringify({ question: q, category: category.name }),
       });
 
-      // Handle non-streaming error (e.g. 400 JSON response)
       const ct = res.headers.get("content-type") || "";
       if (!ct.includes("text/event-stream")) {
         const data = await res.json();
@@ -162,7 +161,7 @@ export default function ChatPage() {
           msg.id === assistantId
             ? {
                 ...msg,
-                content: "⚠️ Network error. Is the server running?",
+                content: "Network error. Is the server running?",
                 error: String(e),
               }
             : msg
@@ -180,7 +179,7 @@ export default function ChatPage() {
         <div>
           <h1 className="text-base font-semibold text-gray-900">Chat</h1>
           <p className="text-xs text-gray-500 mt-0.5">
-            Ask questions about your documents
+            Ask questions in plain English — CogniBase finds the answers in your documents
           </p>
         </div>
 
@@ -190,7 +189,7 @@ export default function ChatPage() {
             onClick={() => setCategoryOpen((o) => !o)}
             className="flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
           >
-            <span className="w-2 h-2 rounded-full bg-indigo-500" />
+            <span className="w-2 h-2 rounded-full bg-blue-500" />
             {category?.name ?? "Select category"}
             <ChevronDown
               size={14}
@@ -208,7 +207,7 @@ export default function ChatPage() {
                   }}
                   className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center justify-between transition-colors ${
                     c.id === category?.id
-                      ? "text-indigo-700 font-medium"
+                      ? "text-blue-700 font-medium"
                       : "text-gray-700"
                   }`}
                 >
@@ -227,15 +226,14 @@ export default function ChatPage() {
       <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
         {messages.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center">
-            <div className="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center mb-4">
-              <Bot size={28} className="text-indigo-500" />
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-50 to-violet-50 flex items-center justify-center mb-4 border border-blue-100">
+              <CogniBaseLogo size={36} />
             </div>
             <h2 className="text-sm font-semibold text-gray-800">
               Ask anything about your {category?.name ?? ""} documents
             </h2>
             <p className="text-xs text-gray-400 mt-1 max-w-xs">
-              Upload documents in the Documents tab first, then come back here
-              to chat.
+              Type a question like &ldquo;What are the key terms?&rdquo; or &ldquo;Summarize the main points&rdquo; — CogniBase will find the answer.
             </p>
           </div>
         )}
@@ -247,13 +245,15 @@ export default function ChatPage() {
           >
             <div
               className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                msg.role === "user" ? "bg-indigo-600" : "bg-gray-200"
+                msg.role === "user"
+                  ? "bg-gradient-to-br from-blue-500 to-violet-600"
+                  : "bg-gray-100"
               }`}
             >
               {msg.role === "user" ? (
                 <User size={14} className="text-white" />
               ) : (
-                <Bot size={14} className="text-gray-600" />
+                <CogniBaseLogo size={20} />
               )}
             </div>
 
@@ -265,7 +265,7 @@ export default function ChatPage() {
                   msg.error
                     ? "bg-red-50 border border-red-200 text-red-700 rounded-tl-sm"
                     : msg.role === "user"
-                    ? "bg-indigo-600 text-white rounded-tr-sm"
+                    ? "bg-gradient-to-br from-blue-500 to-violet-600 text-white rounded-tr-sm"
                     : "bg-white border border-gray-200 text-gray-800 rounded-tl-sm"
                 }`}
               >
@@ -285,16 +285,16 @@ export default function ChatPage() {
                   {msg.sources.map((s, i) => (
                     <div
                       key={i}
-                      className="flex items-start gap-2 bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2"
+                      className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2"
                     >
                       <FileText
                         size={12}
-                        className="text-indigo-400 mt-0.5 flex-shrink-0"
+                        className="text-blue-400 mt-0.5 flex-shrink-0"
                       />
                       <div className="min-w-0">
-                        <p className="text-xs font-medium text-indigo-700 flex items-center gap-1.5">
+                        <p className="text-xs font-medium text-blue-700 flex items-center gap-1.5">
                           {s.file}
-                          <span className="text-indigo-400 font-normal">
+                          <span className="text-blue-400 font-normal">
                             {s.score}% match
                           </span>
                         </p>
@@ -315,7 +315,7 @@ export default function ChatPage() {
 
       {/* Input */}
       <div className="bg-white border-t border-gray-200 px-6 py-4">
-        <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 focus-within:border-indigo-400 focus-within:ring-2 focus-within:ring-indigo-100 transition-all">
+        <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
           <input
             type="text"
             value={input}
@@ -334,7 +334,7 @@ export default function ChatPage() {
           <button
             onClick={send}
             disabled={!input.trim() || loading || !category}
-            className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center hover:from-blue-600 hover:to-violet-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
           >
             {loading ? (
               <Loader2 size={14} className="text-white animate-spin" />
