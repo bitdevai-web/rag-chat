@@ -34,20 +34,25 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-white flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden bg-gradient-to-br from-blue-700 via-violet-700 to-indigo-900">
+
+      {/* Decorative blobs */}
+      <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-cyan-400 opacity-20 blur-3xl pointer-events-none" />
+      <div className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-violet-500 opacity-25 blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/4 w-64 h-64 rounded-full bg-blue-300 opacity-10 blur-2xl pointer-events-none" />
 
       {/* Logo + name */}
-      <div className="flex items-center gap-2.5 mb-8">
+      <div className="flex items-center gap-2.5 mb-8 relative z-10">
         <CogniBaseLogo size={32} />
-        <span className="text-xl font-bold text-gray-900">CogniBase</span>
+        <span className="text-xl font-bold text-white">CogniBase</span>
       </div>
 
       {/* Heading */}
-      <h1 className="text-3xl font-bold text-gray-900 mb-1">Welcome back</h1>
-      <p className="text-sm text-gray-500 mb-8">Sign in to your account to continue</p>
+      <h1 className="text-3xl font-bold text-white mb-1 relative z-10">Welcome back</h1>
+      <p className="text-sm text-white/60 mb-8 relative z-10">Sign in to your account to continue</p>
 
       {/* Card */}
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+      <div className="w-full max-w-md bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 p-8 relative z-10">
 
         {/* Default credentials hint */}
         <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 mb-6 text-xs text-blue-700">
