@@ -1,19 +1,15 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
 
 export const metadata: Metadata = {
-  title: "RAG Chat",
-  description: "Document-based AI chat",
+  title: "CogniBase",
+  description: "Your intelligent document companion",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body className="flex h-screen bg-gray-50 text-gray-900 antialiased">
-        <Sidebar />
-        <main className="flex-1 overflow-hidden">{children}</main>
-      </body>
+      <body className="antialiased">{children}</body>
     </html>
   );
 }
