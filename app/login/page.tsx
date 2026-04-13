@@ -43,7 +43,7 @@ export default function LoginPage() {
 
       {/* Logo + name */}
       <div className="flex items-center gap-2.5 mb-8 relative z-10">
-        <CogniBaseLogo size={32} />
+        <CogniBaseLogo size={32} variant="white" />
         <span className="text-xl font-bold text-white">CogniBase</span>
       </div>
 
@@ -118,10 +118,6 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Don&apos;t have an account?{" "}
-          <span className="text-blue-600 font-medium cursor-pointer hover:text-blue-800">Sign up for free</span>
-        </p>
       </div>
     </div>
   );
