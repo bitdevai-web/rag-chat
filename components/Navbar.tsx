@@ -91,12 +91,8 @@ export default function Navbar() {
               </Link>
               <button
                 type="button"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  logout();
-                }}
-                className="w-full text-left flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50/50 transition-colors cursor-pointer"
+                onClick={logout}
+                className="w-full text-left flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
               >
                 <LogOut size={14} /> Sign Out
               </button>
