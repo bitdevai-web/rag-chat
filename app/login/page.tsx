@@ -1,8 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react";
-import { CogniBaseLogo } from "@/components/CogniBaseLogo";
+import { Eye, EyeOff, Loader2, AlertCircle, Zap, Database, MessageSquare, FileText, Brain, Lock } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -34,90 +33,186 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 relative overflow-hidden bg-gradient-to-br from-blue-700 via-violet-700 to-indigo-900">
+    <div className="min-h-screen flex relative overflow-hidden">
+      {/* Wallpaper background */}
+      <div 
+        className="absolute inset-0 z-0"
+        style={{
+          backgroundImage: 'url(/login-wallpaper.svg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed',
+          backgroundRepeat: 'no-repeat',
+        }}
+      />
 
-      {/* Decorative blobs */}
-      <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-cyan-400 opacity-20 blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 -right-32 w-96 h-96 rounded-full bg-violet-500 opacity-25 blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 left-1/4 w-64 h-64 rounded-full bg-blue-300 opacity-10 blur-2xl pointer-events-none" />
+      {/* Left sidebar - Features */}
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative z-10">
+        {/* Top section with logo */}
+        <div>
+          <div className="flex items-center gap-5 mb-16">
+            <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-cyan-400/50 shadow-lg shadow-cyan-500/20 flex-shrink-0">
+              <div className="text-white font-bold text-xl">C</div>
+            </div>
+            <div>
+              <h2 className="text-3xl font-bold text-white">CogniBase</h2>
+              <p className="text-slate-400 text-sm">AI-Powered Knowledge Management</p>
+            </div>
+          </div>
 
-      {/* Logo + name */}
-      <div className="flex items-center gap-2.5 mb-8 relative z-10">
-        <CogniBaseLogo size={32} variant="white" />
-        <span className="text-xl font-bold text-white">CogniBase</span>
-      </div>
-
-      {/* Heading */}
-      <h1 className="text-3xl font-bold text-white mb-1 relative z-10">Welcome back</h1>
-      <p className="text-sm text-white/60 mb-8 relative z-10">Sign in to your account to continue</p>
-
-      {/* Card */}
-      <div className="w-full max-w-md bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 p-8 relative z-10">
-
-        {/* Default credentials hint */}
-        <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3 mb-6 text-xs text-blue-700">
-          <AlertCircle size={13} className="text-blue-400 flex-shrink-0" />
-          Default: <span className="font-mono font-semibold">admin</span> / <span className="font-mono font-semibold">admin123</span>
+          <h1 className="text-5xl font-bold text-white mb-6 leading-tight">
+            Intelligent Document <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-400 to-cyan-400">Analysis</span>
+          </h1>
+          <p className="text-slate-400 text-lg mb-12">
+            Transform your documents into searchable knowledge with AI-powered retrieval and analysis.
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Username (shown as Email address per design) */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700">Email address</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => { setUsername(e.target.value); setError(""); }}
-              placeholder="admin"
-              autoComplete="username"
-              required
-              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-800 placeholder-gray-400 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all bg-white"
-            />
+        {/* Features grid */}
+        <div className="space-y-6">
+          <div className="flex items-start gap-4 bg-teal-950/20 backdrop-blur-sm p-5 rounded-xl border border-teal-700/30 hover:border-teal-600/50 transition-all">
+            <div className="w-10 h-10 bg-teal-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Brain size={20} className="text-teal-400" />
+            </div>
+            <div>
+              <h3 className="text-white font-semibold mb-1">AI-Powered Analysis</h3>
+              <p className="text-slate-400 text-sm">Advanced embeddings and semantic search</p>
+            </div>
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-gray-700">Password</label>
-            <div className="flex items-center border border-gray-200 rounded-xl px-4 py-3 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-100 transition-all bg-white">
+          <div className="flex items-start gap-4 bg-purple-950/20 backdrop-blur-sm p-5 rounded-xl border border-purple-700/30 hover:border-purple-600/50 transition-all">
+            <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <Database size={20} className="text-purple-400" />
+            </div>
+            <div>
+              <h3 className="text-white font-semibold mb-1">Vector Database</h3>
+              <p className="text-slate-400 text-sm">Fast and accurate document retrieval</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-4 bg-cyan-950/20 backdrop-blur-sm p-5 rounded-xl border border-cyan-700/30 hover:border-cyan-600/50 transition-all">
+            <div className="w-10 h-10 bg-cyan-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <MessageSquare size={20} className="text-cyan-400" />
+            </div>
+            <div>
+              <h3 className="text-white font-semibold mb-1">Conversational AI</h3>
+              <p className="text-slate-400 text-sm">Chat with your documents naturally</p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-4 bg-indigo-950/20 backdrop-blur-sm p-5 rounded-xl border border-indigo-700/30 hover:border-indigo-600/50 transition-all">
+            <div className="w-10 h-10 bg-indigo-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+              <FileText size={20} className="text-indigo-400" />
+            </div>
+            <div>
+              <h3 className="text-white font-semibold mb-1">Multi-Format Support</h3>
+              <p className="text-slate-400 text-sm">PDF, DOCX, XLSX, TXT and more</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom footer */}
+        <div className="text-slate-500 text-sm">
+          <p>© 2026 CogniBase. All rights reserved.</p>
+        </div>
+      </div>
+
+      {/* Right side - Login Form */}
+      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 relative z-10">
+        {/* Mobile logo - only visible on small screens */}
+        <div className="lg:hidden flex flex-col items-center gap-4 mb-12">
+          <div className="w-20 h-20 bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600 rounded-3xl flex items-center justify-center shadow-lg shadow-cyan-500/30 border border-cyan-400/50">
+            <div className="text-white font-bold text-4xl">C</div>
+          </div>
+          <div className="text-center">
+            <h1 className="text-3xl font-bold text-white">CogniBase</h1>
+            <p className="text-slate-400 text-sm mt-1">AI-Powered Knowledge Management</p>
+          </div>
+        </div>
+
+        {/* Login Card */}
+        <div className="w-full max-w-md bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 backdrop-blur-xl rounded-3xl shadow-2xl border border-slate-700/50 p-10">
+          
+          <div className="hidden lg:flex justify-center mb-8">
+            <div className="w-16 h-16 bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center border border-cyan-400/50 shadow-lg shadow-cyan-500/20">
+              <div className="text-white font-bold text-xl">C</div>
+            </div>
+          </div>
+
+          <h2 className="text-3xl font-bold text-center text-white mb-2">Welcome back</h2>
+          <p className="text-center text-slate-400 text-sm mb-10">Sign in to your account to continue</p>
+
+          {/* Default credentials hint */}
+          <div className="flex items-center gap-2 bg-gradient-to-r from-teal-950/40 to-teal-900/20 border border-teal-700/40 rounded-lg px-4 py-3 mb-8 text-xs text-teal-300">
+            <AlertCircle size={14} className="text-teal-400 flex-shrink-0" />
+            <span>Default credentials: <span className="font-mono font-semibold">admin</span> / <span className="font-mono font-semibold">admin123</span></span>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Username */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-200">Email address</label>
               <input
-                type={showPw ? "text" : "password"}
-                value={password}
-                onChange={(e) => { setPassword(e.target.value); setError(""); }}
-                placeholder="••••••••••"
-                autoComplete="current-password"
+                type="text"
+                value={username}
+                onChange={(e) => { setUsername(e.target.value); setError(""); }}
+                placeholder="admin"
+                autoComplete="username"
                 required
-                className="flex-1 text-sm text-gray-800 placeholder-gray-400 outline-none bg-transparent"
+                className="w-full border border-slate-700 rounded-lg px-4 py-3 text-sm text-white placeholder-slate-600 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30 transition-all bg-slate-800/50 backdrop-blur-sm"
               />
-              <button type="button" onClick={() => setShowPw((s) => !s)} className="text-gray-400 hover:text-gray-600 ml-2">
-                {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
             </div>
-          </div>
 
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center gap-2 text-gray-600 cursor-pointer">
-              <input type="checkbox" className="rounded border-gray-300 accent-blue-600" />
-              Remember me
-            </label>
-            <span className="text-blue-600 hover:text-blue-800 cursor-pointer text-sm">Forgot your password?</span>
-          </div>
-
-          {error && (
-            <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
-              <AlertCircle size={14} className="flex-shrink-0" />
-              {error}
+            {/* Password */}
+            <div className="space-y-2">
+              <label className="text-sm font-semibold text-slate-200">Password</label>
+              <div className="flex items-center border border-slate-700 rounded-lg px-4 py-3 focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-500/30 transition-all bg-slate-800/50 backdrop-blur-sm">
+                <input
+                  type={showPw ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); setError(""); }}
+                  placeholder="••••••••••"
+                  autoComplete="current-password"
+                  required
+                  className="flex-1 text-sm text-white placeholder-slate-600 outline-none bg-transparent"
+                />
+                <button type="button" onClick={() => setShowPw((s) => !s)} className="text-slate-500 hover:text-teal-400 transition-colors ml-2">
+                  {showPw ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
-          )}
 
-          <button
-            type="submit"
-            disabled={loading || !username || !password}
-            className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium text-sm py-3 rounded-xl transition-colors"
-          >
-            {loading ? <Loader2 size={15} className="animate-spin" /> : null}
-            {loading ? "Signing in…" : "Sign in →"}
-          </button>
-        </form>
+            {/* Remember me & Forgot password */}
+            <div className="flex items-center justify-between text-sm pt-2">
+              <label className="flex items-center gap-2 text-slate-400 cursor-pointer hover:text-slate-300 transition-colors">
+                <input type="checkbox" className="w-4 h-4 rounded border-slate-600 accent-teal-500 cursor-pointer" />
+                Remember me
+              </label>
+              <span className="text-teal-400 hover:text-teal-300 cursor-pointer text-sm transition-colors">Forgot your password?</span>
+            </div>
 
+            {/* Error message */}
+            {error && (
+              <div className="flex items-center gap-2 bg-red-950/50 border border-red-700/40 rounded-lg px-4 py-3 text-sm text-red-300">
+                <AlertCircle size={16} className="flex-shrink-0" />
+                {error}
+              </div>
+            )}
+
+            {/* Submit button */}
+            <button
+              type="submit"
+              disabled={loading || !username || !password}
+              className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-500 hover:to-cyan-500 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm py-3 rounded-lg transition-all mt-8 shadow-lg shadow-teal-500/30"
+            >
+              {loading ? <Loader2 size={16} className="animate-spin" /> : <Lock size={16} />}
+              {loading ? "Signing in…" : "Sign in →"}
+            </button>
+          </form>
+        </div>
+
+        {/* Mobile footer */}
+        <p className="lg:hidden text-slate-500 text-xs mt-10 text-center">© 2026 CogniBase. All rights reserved.</p>
       </div>
     </div>
   );

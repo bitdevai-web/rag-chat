@@ -31,6 +31,20 @@ function monthsAgo(dateStr: string) {
   return `${months} Month${months > 1 ? "s" : ""}`;
 }
 
+const colorTones = [
+  { bg: "bg-cyan-50/80", border: "border-cyan-200/50", text: "text-cyan-700", badge: "bg-cyan-100/60 text-cyan-700", accent: "from-cyan-400 to-cyan-500" },
+  { bg: "bg-blue-50/80", border: "border-blue-200/50", text: "text-blue-700", badge: "bg-blue-100/60 text-blue-700", accent: "from-blue-400 to-blue-500" },
+  { bg: "bg-indigo-50/80", border: "border-indigo-200/50", text: "text-indigo-700", badge: "bg-indigo-100/60 text-indigo-700", accent: "from-indigo-400 to-indigo-500" },
+  { bg: "bg-purple-50/80", border: "border-purple-200/50", text: "text-purple-700", badge: "bg-purple-100/60 text-purple-700", accent: "from-purple-400 to-purple-500" },
+  { bg: "bg-teal-50/80", border: "border-teal-200/50", text: "text-teal-700", badge: "bg-teal-100/60 text-teal-700", accent: "from-teal-400 to-teal-500" },
+  { bg: "bg-emerald-50/80", border: "border-emerald-200/50", text: "text-emerald-700", badge: "bg-emerald-100/60 text-emerald-700", accent: "from-emerald-400 to-emerald-500" },
+];
+
+function getColorByIndex(index: number) {
+  return colorTones[index % colorTones.length];
+}
+
+
 export default function DashboardPage() {
   const router = useRouter();
   const [kbs, setKbs] = useState<KB[]>([]);
@@ -159,9 +173,9 @@ export default function DashboardPage() {
               <Link
                 key={kb.id}
                 href={`/kb/${kb.id}`}
-                className="block border border-gray-200 rounded-xl p-5 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer"
+                className={`block border ${getColorByIndex(filtered.indexOf(kb)).border} ${getColorByIndex(filtered.indexOf(kb)).bg} rounded-xl p-5 hover:shadow-md transition-all cursor-pointer`}
               >
-                <h3 className="font-semibold text-gray-900 text-sm mb-1 truncate">
+                <h3 className={`font-semibold ${getColorByIndex(filtered.indexOf(kb)).text} text-sm mb-1 truncate`}>
                   {kb.name}
                 </h3>
                 {kb.description && (
@@ -172,7 +186,7 @@ export default function DashboardPage() {
                     <FileText size={12} />
                     {kb.doc_count} doc{kb.doc_count !== 1 ? "s" : ""}
                   </div>
-                  <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">
+                  <span className={`text-xs ${getColorByIndex(filtered.indexOf(kb)).badge} px-2 py-0.5 rounded-full`}>
                     active
                   </span>
                 </div>

@@ -1,0 +1,21 @@
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#00b4ff;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#2563eb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4f46e5;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Outer crescent -->
+  <path d="M 100 80 Q 200 40 280 120 Q 320 160 300 260 Q 280 340 160 380 Q 80 340 70 240 Q 60 120 100 80 Z" fill="url(#waveGradient)"/>
+  
+  <!-- Second crescent (lighter) -->
+  <path d="M 180 140 Q 260 110 320 180 Q 350 220 340 300 Q 320 360 220 390 Q 140 350 130 260 Q 120 170 180 140 Z" fill="white" opacity="0.2"/>
+  
+  <!-- Third crescent (lighter) -->
+  <path d="M 250 190 Q 310 170 350 230 Q 370 270 360 330 Q 340 380 270 400 Q 210 370 200 300 Q 190 230 250 190 Z" fill="white" opacity="0.3"/>
+  
+  <!-- Innermost crescent (lighter) -->
+  <path d="M 310 240 Q 350 225 375 270 Q 385 305 375 345 Q 355 390 310 405 Q 270 385 265 330 Q 260 270 310 240 Z" fill="white" opacity="0.4"/>
+</svg>
