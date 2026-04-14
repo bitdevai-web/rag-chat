@@ -12,7 +12,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       {/* Blue accent - logo color */}
       <div className="absolute top-1/2 left-1/4 w-64 h-64 bg-gradient-to-br from-blue-100/10 to-cyan-100/5 rounded-full blur-3xl -z-10" />
       
-      <div className="pt-4">
+      <div className="pt-4 relative z-30">
         <Navbar />
       </div>
       <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-8 relative z-10">{children}</main>
