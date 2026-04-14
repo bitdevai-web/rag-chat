@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import { LogOut, Settings, ChevronDown } from "lucide-react";
@@ -49,9 +50,8 @@ export default function Navbar() {
     <div className="px-6 py-3 flex justify-center">
       <nav className="w-full max-w-6xl bg-white/70 backdrop-blur-xl rounded-2xl shadow-lg border border-cyan-300/30 hover:border-cyan-400/40 px-6 py-3.5 flex items-center justify-between transition-all duration-300">
         {/* Logo */}
-        <Link href="/dashboard" className="flex items-center gap-2.5 shrink-0 hover:opacity-80 transition-opacity">
-          <div className="w-9 h-9 bg-gradient-to-br from-cyan-400 via-blue-500 to-indigo-600 rounded-lg flex items-center justify-center font-bold text-white text-xs shadow-md">C</div>
-          <span className="font-bold bg-gradient-to-r from-cyan-500 to-indigo-600 bg-clip-text text-transparent text-base">CogniBase</span>
+        <Link href="/dashboard" className="flex items-center shrink-0 hover:opacity-80 transition-opacity">
+          <Image src="/cognibase-logo.png" alt="CogniBase" width={120} height={40} className="h-10 w-auto object-contain" priority />
         </Link>
 
         {/* Nav links */}
