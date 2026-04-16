@@ -150,13 +150,85 @@ function init(db: Database.Database) {
     );
   `);
 
-  // Migrate existing tables (add columns if missing)
+  // Migrate existing tables (add columns if missing) — safe no-ops if already present
   try { db.exec("ALTER TABLE categories ADD COLUMN description TEXT DEFAULT ''"); } catch {}
   try { db.exec("ALTER TABLE categories ADD COLUMN summary TEXT DEFAULT NULL"); } catch {}
   try { db.exec("ALTER TABLE categories ADD COLUMN owner_id INTEGER DEFAULT NULL"); } catch {}
   try { db.exec("ALTER TABLE messages ADD COLUMN conversation_id INTEGER"); } catch {}
   try { db.exec("ALTER TABLE messages ADD COLUMN suggestions TEXT"); } catch {}
   try { db.exec("ALTER TABLE conversations ADD COLUMN owner_id INTEGER DEFAULT NULL"); } catch {}
+
+  // Phase 2 table migrations — ensure they exist even on old DB files
+  try {
+    db.exec(`CREATE TABLE IF NOT EXISTS users (
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      username        TEXT    UNIQUE NOT NULL,
+      email           TEXT    UNIQUE NOT NULL,
+      password_hash   TEXT,
+      role            TEXT    DEFAULT 'member',
+      avatar_url      TEXT    DEFAULT NULL,
+      oauth_provider  TEXT    DEFAULT NULL,
+      oauth_id        TEXT    DEFAULT NULL,
+      invited_by      INTEGER DEFAULT NULL,
+      created_at      TEXT    DEFAULT (datetime('now'))
+    )`);
+  } catch {}
+  try {
+    db.exec(`CREATE TABLE IF NOT EXISTS teams (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      name        TEXT    NOT NULL,
+      slug        TEXT    UNIQUE NOT NULL,
+      description TEXT    DEFAULT '',
+      created_by  INTEGER NOT NULL,
+      created_at  TEXT    DEFAULT (datetime('now'))
+    )`);
+  } catch {}
+  try {
+    db.exec(`CREATE TABLE IF NOT EXISTS team_members (
+      team_id    INTEGER NOT NULL,
+      user_id    INTEGER NOT NULL,
+      role       TEXT    DEFAULT 'member',
+      joined_at  TEXT    DEFAULT (datetime('now')),
+      PRIMARY KEY (team_id, user_id)
+    )`);
+  } catch {}
+  try {
+    db.exec(`CREATE TABLE IF NOT EXISTS category_members (
+      category_id INTEGER NOT NULL,
+      user_id     INTEGER NOT NULL,
+      role        TEXT    DEFAULT 'viewer',
+      added_at    TEXT    DEFAULT (datetime('now')),
+      PRIMARY KEY (category_id, user_id)
+    )`);
+  } catch {}
+  try {
+    db.exec(`CREATE TABLE IF NOT EXISTS comments (
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id         INTEGER NOT NULL,
+      document_id     INTEGER DEFAULT NULL,
+      conversation_id INTEGER DEFAULT NULL,
+      content         TEXT    NOT NULL,
+      created_at      TEXT    DEFAULT (datetime('now')),
+      updated_at      TEXT    DEFAULT (datetime('now'))
+    )`);
+  } catch {}
+  try {
+    db.exec(`CREATE TABLE IF NOT EXISTS audit_log (
+      id            INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id       INTEGER DEFAULT NULL,
+      action        TEXT    NOT NULL,
+      resource_type TEXT    NOT NULL,
+      resource_id   TEXT    DEFAULT NULL,
+      metadata      TEXT    DEFAULT '{}',
+      created_at    TEXT    DEFAULT (datetime('now'))
+    )`);
+  } catch {}
+  // Phase 2 indexes (safe no-ops)
+  try { db.exec("CREATE INDEX IF NOT EXISTS idx_audit_user     ON audit_log(user_id)"); } catch {}
+  try { db.exec("CREATE INDEX IF NOT EXISTS idx_audit_resource ON audit_log(resource_type, resource_id)"); } catch {}
+  try { db.exec("CREATE INDEX IF NOT EXISTS idx_comments_doc   ON comments(document_id)"); } catch {}
+  try { db.exec("CREATE INDEX IF NOT EXISTS idx_comments_conv  ON comments(conversation_id)"); } catch {}
+  try { db.exec("CREATE INDEX IF NOT EXISTS idx_team_members   ON team_members(user_id)"); } catch {}
 
   // Seed a default admin user if no users exist yet
   const userCount = (db.prepare("SELECT COUNT(*) as n FROM users").get() as { n: number }).n;
