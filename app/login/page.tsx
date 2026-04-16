@@ -52,7 +52,7 @@ export default function LoginPage() {
         {/* Top section with logo */}
         <div>
           <div className="flex items-center gap-5 mb-16">
-            <Image src="/cognibase-logo.png" alt="CogniBase" width={160} height={54} className="h-14 w-auto object-contain drop-shadow-lg" priority />
+            <Image src="/cognibase-logo-dark.svg" alt="CogniBase" width={200} height={48} className="h-12 w-auto object-contain" priority />
             <div>
               <p className="text-slate-400 text-sm">AI-Powered Knowledge Management</p>
             </div>
@@ -119,7 +119,7 @@ export default function LoginPage() {
       <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-6 relative z-10">
         {/* Mobile logo - only visible on small screens */}
         <div className="lg:hidden flex flex-col items-center gap-4 mb-12">
-          <Image src="/cognibase-logo.png" alt="CogniBase" width={180} height={60} className="h-16 w-auto object-contain drop-shadow-lg" priority />
+          <Image src="/cognibase-logo-dark.svg" alt="CogniBase" width={200} height={48} className="h-12 w-auto object-contain" priority />
           <p className="text-slate-400 text-sm text-center">AI-Powered Knowledge Management</p>
         </div>
 
@@ -127,7 +127,7 @@ export default function LoginPage() {
         <div className="w-full max-w-md bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 backdrop-blur-xl rounded-3xl shadow-2xl border border-slate-700/50 p-10">
           
           <div className="hidden lg:flex justify-center mb-8">
-            <Image src="/cognibase-logo.png" alt="CogniBase" width={150} height={50} className="h-12 w-auto object-contain drop-shadow-md" priority />
+            <Image src="/cognibase-logo-dark.svg" alt="CogniBase" width={200} height={48} className="h-11 w-auto object-contain" priority />
           </div>
 
           <h2 className="text-3xl font-bold text-center text-white mb-2">Welcome back</h2>

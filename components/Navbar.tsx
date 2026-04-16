@@ -54,7 +54,8 @@ export default function Navbar() {
       <nav className="w-full max-w-6xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl shadow-lg border border-cyan-300/30 hover:border-cyan-400/40 dark:border-cyan-500/20 dark:hover:border-cyan-400/30 px-6 py-3.5 flex items-center justify-between transition-all duration-300">
         {/* Logo */}
         <Link href="/dashboard" className="flex items-center shrink-0 hover:opacity-80 transition-opacity">
-          <Image src="/cognibase-logo.png" alt="CogniBase" width={120} height={40} className="h-10 w-auto object-contain" priority />
+          <Image src="/cognibase-logo.svg" alt="CogniBase" width={160} height={38} className="h-9 w-auto object-contain dark:hidden" priority />
+          <Image src="/cognibase-logo-dark.svg" alt="CogniBase" width={160} height={38} className="h-9 w-auto object-contain hidden dark:block" priority />
         </Link>
 
         {/* Nav links */}

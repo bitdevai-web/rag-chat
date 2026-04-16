@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 52" fill="none">
+  <defs>
+    <linearGradient id="iconGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#06b6d4"/>
+      <stop offset="100%" stop-color="#6366f1"/>
+    </linearGradient>
+    <linearGradient id="dotGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#818cf8"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon: stylised neural-DB hex mark -->
+  <g>
+    <!-- Outer hex ring -->
+    <path d="M26 4 L44 14 L44 34 L26 44 L8 34 L8 14 Z"
+          stroke="url(#iconGrad)" stroke-width="2.5" fill="none" stroke-linejoin="round"/>
+
+    <!-- Inner hex fill subtle -->
+    <path d="M26 10 L38 17 L38 31 L26 38 L14 31 L14 17 Z"
+          fill="url(#iconGrad)" fill-opacity="0.08"/>
+
+    <!-- Centre node -->
+    <circle cx="26" cy="24" r="3.5" fill="url(#iconGrad)"/>
+
+    <!-- Spoke nodes + lines -->
+    <!-- Top -->
+    <line x1="26" y1="24" x2="26" y2="13" stroke="url(#iconGrad)" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="26" cy="12" r="2" fill="url(#dotGrad)"/>
+
+    <!-- Bottom -->
+    <line x1="26" y1="24" x2="26" y2="35" stroke="url(#iconGrad)" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="26" cy="36" r="2" fill="url(#dotGrad)"/>
+
+    <!-- Top-right -->
+    <line x1="26" y1="24" x2="35" y2="18.5" stroke="url(#iconGrad)" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="36.5" cy="17.5" r="2" fill="url(#dotGrad)"/>
+
+    <!-- Bottom-right -->
+    <line x1="26" y1="24" x2="35" y2="29.5" stroke="url(#iconGrad)" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="36.5" cy="30.5" r="2" fill="url(#dotGrad)"/>
+
+    <!-- Top-left -->
+    <line x1="26" y1="24" x2="17" y2="18.5" stroke="url(#iconGrad)" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="15.5" cy="17.5" r="2" fill="url(#dotGrad)"/>
+
+    <!-- Bottom-left -->
+    <line x1="26" y1="24" x2="17" y2="29.5" stroke="url(#iconGrad)" stroke-width="1.5" stroke-linecap="round"/>
+    <circle cx="15.5" cy="30.5" r="2" fill="url(#dotGrad)"/>
+  </g>
+
+  <!-- Wordmark -->
+  <!-- "Cogni" in slate/dark weight -->
+  <text x="58" y="32"
+        font-family="'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif"
+        font-size="22"
+        font-weight="600"
+        letter-spacing="-0.5"
+        fill="#1e293b">Cogni</text>
+
+  <!-- "Base" in gradient cyan-indigo -->
+  <text x="114" y="32"
+        font-family="'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif"
+        font-size="22"
+        font-weight="700"
+        letter-spacing="-0.5"
+        fill="url(#iconGrad)">Base</text>
+
+  <!-- Tagline -->
+  <text x="59" y="44"
+        font-family="'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif"
+        font-size="8.5"
+        font-weight="400"
+        letter-spacing="1.8"
+        fill="#94a3b8">KNOWLEDGE · AI</text>
+</svg>
