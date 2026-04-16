@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
-    const { question, category } = await req.json();
+    const { question, category, conversation_id } = await req.json();
     if (!question?.trim())
       return NextResponse.json({ error: "No question" }, { status: 400 });
     if (!category)
@@ -45,10 +45,30 @@ export async function POST(req: NextRequest) {
       .prepare("SELECT id FROM categories WHERE name = ?")
       .get(category) as { id: number } | undefined;
 
+    // Resolve or create a conversation thread
+    let convId: number | null = null;
     if (cat) {
+      if (conversation_id) {
+        const existing = db
+          .prepare("SELECT id FROM conversations WHERE id = ? AND category_id = ?")
+          .get(conversation_id, cat.id) as { id: number } | undefined;
+        if (existing) convId = existing.id;
+      }
+      if (!convId) {
+        // Auto-create a thread titled with the first question (truncated)
+        const autoTitle = question.slice(0, 60) + (question.length > 60 ? "…" : "");
+        const { lastInsertRowid } = db
+          .prepare("INSERT INTO conversations (category_id, title) VALUES (?, ?)")
+          .run(cat.id, autoTitle);
+        convId = Number(lastInsertRowid);
+      } else {
+        // Bump updated_at for existing thread
+        db.prepare("UPDATE conversations SET updated_at = datetime('now') WHERE id = ?").run(convId);
+      }
+
       db.prepare(
-        "INSERT INTO messages (category_id, role, content) VALUES (?, 'user', ?)"
-      ).run(cat.id, question);
+        "INSERT INTO messages (category_id, conversation_id, role, content) VALUES (?, ?, 'user', ?)"
+      ).run(cat.id, convId, question);
     }
 
     const sources = chunks.map((c) => ({
@@ -66,6 +86,9 @@ export async function POST(req: NextRequest) {
             encoder.encode(`data: ${JSON.stringify(data)}\n\n`)
           );
         };
+
+        // Notify client of the thread id (useful when auto-created)
+        if (convId) send({ conversation_id: convId });
 
         try {
           if (provider === "anthropic") {
@@ -89,11 +112,29 @@ export async function POST(req: NextRequest) {
               }
             }
 
+            let assistantMsgId: number | null = null;
             if (cat) {
-              db.prepare(
-                "INSERT INTO messages (category_id, role, content, sources) VALUES (?, 'assistant', ?, ?)"
-              ).run(cat.id, fullText, JSON.stringify(sources));
+              const r = db.prepare(
+                "INSERT INTO messages (category_id, conversation_id, role, content, sources) VALUES (?, ?, 'assistant', ?, ?)"
+              ).run(cat.id, convId, fullText, JSON.stringify(sources));
+              assistantMsgId = Number(r.lastInsertRowid);
             }
+
+            send({ sources });
+
+            // Generate suggested follow-ups (non-streaming, short call)
+            try {
+              const suggestions = await generateFollowUps(
+                provider, apiKey, model, question, fullText
+              );
+              if (suggestions.length) {
+                send({ suggestions });
+                if (assistantMsgId) {
+                  db.prepare("UPDATE messages SET suggestions = ? WHERE id = ?")
+                    .run(JSON.stringify(suggestions), assistantMsgId);
+                }
+              }
+            } catch {}
           } else {
             const OpenAI = (await import("openai")).default;
             const client = new OpenAI({ apiKey });
@@ -113,14 +154,30 @@ export async function POST(req: NextRequest) {
               }
             }
 
+            let assistantMsgId: number | null = null;
             if (cat) {
-              db.prepare(
-                "INSERT INTO messages (category_id, role, content, sources) VALUES (?, 'assistant', ?, ?)"
-              ).run(cat.id, fullText, JSON.stringify(sources));
+              const r = db.prepare(
+                "INSERT INTO messages (category_id, conversation_id, role, content, sources) VALUES (?, ?, 'assistant', ?, ?)"
+              ).run(cat.id, convId, fullText, JSON.stringify(sources));
+              assistantMsgId = Number(r.lastInsertRowid);
             }
+
+            send({ sources });
+
+            try {
+              const suggestions = await generateFollowUps(
+                provider, apiKey, model, question, fullText
+              );
+              if (suggestions.length) {
+                send({ suggestions });
+                if (assistantMsgId) {
+                  db.prepare("UPDATE messages SET suggestions = ? WHERE id = ?")
+                    .run(JSON.stringify(suggestions), assistantMsgId);
+                }
+              }
+            } catch {}
           }
 
-          send({ sources });
           controller.enqueue(encoder.encode("data: [DONE]\n\n"));
         } catch (e) {
           send({ error: String(e) });
@@ -141,6 +198,61 @@ export async function POST(req: NextRequest) {
   } catch (e: unknown) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
   }
+}
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
+async function generateFollowUps(
+  provider: string,
+  apiKey: string,
+  model: string,
+  question: string,
+  answer: string
+): Promise<string[]> {
+  const prompt = `Based on this Q&A, suggest 3 concise follow-up questions the user might ask next.
+Respond with ONLY a JSON array of 3 strings, nothing else.
+
+Question: ${question}
+Answer: ${answer.slice(0, 1500)}
+
+JSON:`;
+
+  let text = "";
+  try {
+    if (provider === "anthropic") {
+      const Anthropic = (await import("@anthropic-ai/sdk")).default;
+      const client = new Anthropic({ apiKey });
+      const res = await client.messages.create({
+        model,
+        max_tokens: 250,
+        messages: [{ role: "user", content: prompt }],
+      });
+      const block = res.content[0];
+      if (block?.type === "text") text = block.text;
+    } else {
+      const OpenAI = (await import("openai")).default;
+      const client = new OpenAI({ apiKey });
+      const res = await client.chat.completions.create({
+        model,
+        max_tokens: 250,
+        messages: [{ role: "user", content: prompt }],
+      });
+      text = res.choices[0]?.message?.content || "";
+    }
+  } catch {
+    return [];
+  }
+
+  // Extract JSON array from response (robust against prose wrapping)
+  const match = text.match(/\[[\s\S]*?\]/);
+  if (!match) return [];
+  try {
+    const arr = JSON.parse(match[0]);
+    if (Array.isArray(arr)) {
+      return arr.filter((s): s is string => typeof s === "string").slice(0, 3);
+    }
+  } catch {}
+  return [];
 }
 
 export async function GET(req: NextRequest) {

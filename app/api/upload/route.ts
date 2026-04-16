@@ -4,6 +4,7 @@ import { extractText } from "@/lib/parsers";
 import { splitIntoChunks } from "@/lib/chunker";
 import { embedBatch } from "@/lib/embeddings";
 import { addChunks } from "@/lib/vectordb";
+import { indexChunks } from "@/lib/fts";
 import { getSetting } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
@@ -108,6 +109,9 @@ async function processDocument(
       chunk_index: i,
     }));
     await addChunks(records);
+
+    // 4b. Index chunks for BM25 keyword search (hybrid retrieval)
+    indexChunks(chunks, { filename, category, document_id: docId });
 
     // 5. Mark ready
     db.prepare("UPDATE documents SET status = 'ready' WHERE id = ?").run(docId);

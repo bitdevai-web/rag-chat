@@ -32,12 +32,12 @@ function monthsAgo(dateStr: string) {
 }
 
 const colorTones = [
-  { bg: "bg-cyan-50/80", border: "border-cyan-200/50", text: "text-cyan-700", badge: "bg-cyan-100/60 text-cyan-700", accent: "from-cyan-400 to-cyan-500" },
-  { bg: "bg-blue-50/80", border: "border-blue-200/50", text: "text-blue-700", badge: "bg-blue-100/60 text-blue-700", accent: "from-blue-400 to-blue-500" },
-  { bg: "bg-indigo-50/80", border: "border-indigo-200/50", text: "text-indigo-700", badge: "bg-indigo-100/60 text-indigo-700", accent: "from-indigo-400 to-indigo-500" },
-  { bg: "bg-purple-50/80", border: "border-purple-200/50", text: "text-purple-700", badge: "bg-purple-100/60 text-purple-700", accent: "from-purple-400 to-purple-500" },
-  { bg: "bg-teal-50/80", border: "border-teal-200/50", text: "text-teal-700", badge: "bg-teal-100/60 text-teal-700", accent: "from-teal-400 to-teal-500" },
-  { bg: "bg-emerald-50/80", border: "border-emerald-200/50", text: "text-emerald-700", badge: "bg-emerald-100/60 text-emerald-700", accent: "from-emerald-400 to-emerald-500" },
+  { bg: "bg-cyan-50/80 dark:bg-cyan-950/30", border: "border-cyan-200/50 dark:border-cyan-800/40", text: "text-cyan-700 dark:text-cyan-300", badge: "bg-cyan-100/60 text-cyan-700 dark:bg-cyan-900/40 dark:text-cyan-300", accent: "from-cyan-400 to-cyan-500" },
+  { bg: "bg-blue-50/80 dark:bg-blue-950/30", border: "border-blue-200/50 dark:border-blue-800/40", text: "text-blue-700 dark:text-blue-300", badge: "bg-blue-100/60 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300", accent: "from-blue-400 to-blue-500" },
+  { bg: "bg-indigo-50/80 dark:bg-indigo-950/30", border: "border-indigo-200/50 dark:border-indigo-800/40", text: "text-indigo-700 dark:text-indigo-300", badge: "bg-indigo-100/60 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300", accent: "from-indigo-400 to-indigo-500" },
+  { bg: "bg-purple-50/80 dark:bg-purple-950/30", border: "border-purple-200/50 dark:border-purple-800/40", text: "text-purple-700 dark:text-purple-300", badge: "bg-purple-100/60 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300", accent: "from-purple-400 to-purple-500" },
+  { bg: "bg-teal-50/80 dark:bg-teal-950/30", border: "border-teal-200/50 dark:border-teal-800/40", text: "text-teal-700 dark:text-teal-300", badge: "bg-teal-100/60 text-teal-700 dark:bg-teal-900/40 dark:text-teal-300", accent: "from-teal-400 to-teal-500" },
+  { bg: "bg-emerald-50/80 dark:bg-emerald-950/30", border: "border-emerald-200/50 dark:border-emerald-800/40", text: "text-emerald-700 dark:text-emerald-300", badge: "bg-emerald-100/60 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300", accent: "from-emerald-400 to-emerald-500" },
 ];
 
 function getColorByIndex(index: number) {
@@ -91,10 +91,10 @@ export default function DashboardPage() {
     <div>
       {/* Welcome */}
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">
           Welcome back, {username}!
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
           Manage your knowledge bases and explore your documents
         </p>
       </div>
@@ -103,42 +103,42 @@ export default function DashboardPage() {
       {!loading && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {stats.map((s, i) => (
-            <div key={i} className="bg-white rounded-2xl border border-gray-200 p-5">
+            <div key={i} className="bg-white dark:bg-slate-900/70 rounded-2xl border border-gray-200 dark:border-slate-800 p-5">
               <div className="flex items-start justify-between mb-2">
-                <p className="text-xs text-gray-500 font-medium">{s.label}</p>
-                <s.icon size={16} className="text-gray-300" />
+                <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">{s.label}</p>
+                <s.icon size={16} className="text-gray-300 dark:text-slate-500" />
               </div>
-              <p className="text-2xl font-bold text-gray-900">{s.value}</p>
-              <p className="text-xs text-gray-400 mt-0.5">{s.sub}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">{s.value}</p>
+              <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">{s.sub}</p>
             </div>
           ))}
         </div>
       )}
 
       {/* KB list */}
-      <div className="bg-white rounded-2xl border border-gray-200 p-6">
+      <div className="bg-white dark:bg-slate-900/70 rounded-2xl border border-gray-200 dark:border-slate-800 p-6">
         <div className="flex items-center justify-between mb-5">
           <div>
-            <h2 className="text-base font-semibold text-gray-900">Knowledge Bases</h2>
-            <p className="text-xs text-gray-500 mt-0.5">Create and manage your document collections</p>
+            <h2 className="text-base font-semibold text-gray-900 dark:text-slate-100">Knowledge Bases</h2>
+            <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">Create and manage your document collections</p>
           </div>
           <button
             onClick={() => router.push("/kb/new")}
-            className="flex items-center gap-1.5 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors"
+            className="flex items-center gap-1.5 bg-gray-900 hover:bg-gray-800 dark:bg-cyan-600 dark:hover:bg-cyan-500 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors"
           >
             <Plus size={14} /> Create Knowledge Base
           </button>
         </div>
 
         {/* Search */}
-        <div className="flex items-center gap-2 border border-gray-200 rounded-xl px-3 py-2.5 mb-5 focus-within:border-blue-300 transition-colors">
-          <Search size={14} className="text-gray-400 flex-shrink-0" />
+        <div className="flex items-center gap-2 border border-gray-200 dark:border-slate-700 rounded-xl px-3 py-2.5 mb-5 focus-within:border-blue-300 dark:focus-within:border-cyan-500 transition-colors">
+          <Search size={14} className="text-gray-400 dark:text-slate-500 flex-shrink-0" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search knowledge bases..."
-            className="flex-1 text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent"
+            className="flex-1 text-sm text-gray-700 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-500 outline-none bg-transparent"
           />
         </div>
 
@@ -146,16 +146,16 @@ export default function DashboardPage() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="border border-gray-100 rounded-xl p-5 animate-pulse">
-                <div className="h-4 bg-gray-100 rounded w-3/4 mb-4" />
-                <div className="h-3 bg-gray-100 rounded w-1/2" />
+              <div key={i} className="border border-gray-100 dark:border-slate-800 rounded-xl p-5 animate-pulse">
+                <div className="h-4 bg-gray-100 dark:bg-slate-800 rounded w-3/4 mb-4" />
+                <div className="h-3 bg-gray-100 dark:bg-slate-800 rounded w-1/2" />
               </div>
             ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16">
-            <Database size={36} className="text-gray-200 mx-auto mb-3" />
-            <p className="text-sm text-gray-500">
+            <Database size={36} className="text-gray-200 dark:text-slate-700 mx-auto mb-3" />
+            <p className="text-sm text-gray-500 dark:text-slate-400">
               {search ? "No knowledge bases match your search" : "No knowledge bases yet"}
             </p>
             {!search && (

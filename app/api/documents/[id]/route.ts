@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
 import { deleteChunksByDocId } from "@/lib/vectordb";
+import { deleteChunksByDocumentId } from "@/lib/fts";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,10 @@ export async function DELETE(
     // Delete from LanceDB first
     await deleteChunksByDocId(id);
 
-    // Delete from SQLite (cascades to no-longer-used chunks table)
+    // Delete from FTS5 keyword index
+    deleteChunksByDocumentId(id);
+
+    // Delete from SQLite
     db.prepare("DELETE FROM documents WHERE id = ?").run(id);
 
     return NextResponse.json({ ok: true });

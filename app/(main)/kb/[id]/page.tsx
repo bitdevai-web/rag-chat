@@ -4,15 +4,17 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, Trash2, Upload, MessageSquare, FileText, Loader2,
-  CheckCircle, AlertCircle, RefreshCw, Send, Zap, X, Plus
+  CheckCircle, AlertCircle, RefreshCw, Send, Zap, X, Plus, MessagesSquare, Eye
 } from "lucide-react";
+import { DocumentViewer } from "@/components/DocumentViewer";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 type KB = { id: number; name: string; description: string; summary: string | null; created_at: string; doc_count: number };
 type DocStatus = "ready" | "processing" | "error";
 type Doc = { id: number; filename: string; file_type: string; size_bytes: number; status: DocStatus; created_at: string };
 type Source = { file: string; excerpt: string; score: number };
-type Message = { id: string; role: "user" | "assistant"; content: string; sources?: Source[]; error?: boolean };
+type Message = { id: string; role: "user" | "assistant"; content: string; sources?: Source[]; suggestions?: string[]; error?: boolean };
+type Conversation = { id: number; title: string; created_at: string; updated_at: string; msg_count: number };
 
 const MAX_DOCS = 5;
 const ACCEPTED = ".pdf,.docx,.txt,.md,.pptx,.xlsx,.csv";
@@ -77,6 +79,13 @@ export default function KBDetailPage() {
   const [msgCount, setMsgCount] = useState(0);
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  // Conversations (threads)
+  const [conversations, setConversations] = useState<Conversation[]>([]);
+  const [activeConvId, setActiveConvId] = useState<number | null>(null);
+
+  // Document viewer
+  const [viewer, setViewer] = useState<{ docId: number; highlight?: string } | null>(null);
+
   // ── Load KB + docs ────────────────────────────────────────────────────────
   const loadKb = useCallback(async () => {
     try {
@@ -111,22 +120,41 @@ export default function KBDetailPage() {
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [pollingIds.size, loadDocs]);
 
-  // Load chat history
+  // Load conversation list for this KB
+  const loadConversations = useCallback(async () => {
+    if (!kb) return;
+    try {
+      const res = await fetch(`/api/conversations?category=${encodeURIComponent(kb.name)}`);
+      const data: Conversation[] = await res.json();
+      if (Array.isArray(data)) {
+        setConversations(data);
+        // Auto-select the most recent if none selected
+        if (!activeConvId && data.length > 0) setActiveConvId(data[0].id);
+      }
+    } catch {}
+  }, [kb, activeConvId]);
+
+  useEffect(() => { if (kb && tab === "chat") loadConversations(); }, [kb, tab, loadConversations]);
+
+  // Load messages for active conversation
   useEffect(() => {
-    if (!kb || tab !== "chat") return;
-    fetch(`/api/chat?category=${encodeURIComponent(kb.name)}`)
+    if (!activeConvId) { setMessages([]); setMsgCount(0); return; }
+    fetch(`/api/conversations/${activeConvId}`)
       .then((r) => r.json())
-      .then((rows: { id: number; role: string; content: string; sources: string }[]) => {
-        if (!Array.isArray(rows)) return;
-        const msgs = rows.map((r) => ({
-          id: String(r.id), role: r.role as "user" | "assistant",
-          content: r.content, sources: r.sources ? JSON.parse(r.sources) : [],
+      .then((data) => {
+        if (!data.messages) return;
+        const msgs: Message[] = data.messages.map((r: { id: number; role: string; content: string; sources: string; suggestions?: string }) => ({
+          id: String(r.id),
+          role: r.role as "user" | "assistant",
+          content: r.content,
+          sources: r.sources ? JSON.parse(r.sources) : [],
+          suggestions: r.suggestions ? JSON.parse(r.suggestions) : undefined,
         }));
         setMessages(msgs);
         setMsgCount(msgs.length);
       })
       .catch(() => {});
-  }, [kb, tab]);
+  }, [activeConvId]);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
@@ -193,7 +221,7 @@ export default function KBDetailPage() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: q, category: kb.name }),
+        body: JSON.stringify({ question: q, category: kb.name, conversation_id: activeConvId }),
       });
       const ct = res.headers.get("content-type") || "";
       if (!ct.includes("text/event-stream")) {
@@ -218,8 +246,10 @@ export default function KBDetailPage() {
           if (raw === "[DONE]") { setMsgCount((c) => c + 2); continue; }
           try {
             const p = JSON.parse(raw);
+            if (p.conversation_id && !activeConvId) setActiveConvId(p.conversation_id);
             if (p.text) setMessages((m) => m.map((msg) => msg.id === assistantId ? { ...msg, content: msg.content + p.text } : msg));
             if (p.sources) setMessages((m) => m.map((msg) => msg.id === assistantId ? { ...msg, sources: p.sources } : msg));
+            if (p.suggestions) setMessages((m) => m.map((msg) => msg.id === assistantId ? { ...msg, suggestions: p.suggestions } : msg));
             if (p.error) setMessages((m) => m.map((msg) => msg.id === assistantId ? { ...msg, content: p.error, error: true } : msg));
           } catch {}
         }
@@ -227,13 +257,23 @@ export default function KBDetailPage() {
     } catch (e) {
       setMessages((m) => m.map((msg) => msg.id === assistantId
         ? { ...msg, content: "Network error. Is the server running?", error: true } : msg));
-    } finally { setChatLoading(false); }
+    } finally {
+      setChatLoading(false);
+      loadConversations();
+    }
   };
 
-  const clearChat = async () => {
-    if (!kb) return;
+  const newConversation = () => {
+    setActiveConvId(null);
     setMessages([]);
     setMsgCount(0);
+  };
+
+  const deleteConversation = async (convId: number) => {
+    if (!confirm("Delete this conversation?")) return;
+    await fetch(`/api/conversations/${convId}`, { method: "DELETE" });
+    if (activeConvId === convId) newConversation();
+    loadConversations();
   };
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -256,8 +296,8 @@ export default function KBDetailPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{kb.name}</h1>
-          {kb.description && <p className="text-sm text-gray-500 mt-1">{kb.description}</p>}
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">{kb.name}</h1>
+          {kb.description && <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">{kb.description}</p>}
         </div>
         <button
           onClick={deleteKb}
@@ -271,11 +311,11 @@ export default function KBDetailPage() {
         {/* Main content */}
         <div className="flex-1 min-w-0">
           {/* Tabs */}
-          <div className="flex bg-gray-100 rounded-xl p-1 mb-6">
+          <div className="flex bg-gray-100 dark:bg-slate-800 rounded-xl p-1 mb-6">
             <button
               onClick={() => setTab("overview")}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                tab === "overview" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                tab === "overview" ? "bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 shadow-sm" : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"
               }`}
             >
               <FileText size={14} /> Overview
@@ -283,7 +323,7 @@ export default function KBDetailPage() {
             <button
               onClick={() => setTab("chat")}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                tab === "chat" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
+                tab === "chat" ? "bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 shadow-sm" : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"
               }`}
             >
               <MessageSquare size={14} /> Chat
@@ -294,8 +334,8 @@ export default function KBDetailPage() {
           {tab === "overview" && (
             <div className="space-y-5">
               {/* Quick Actions */}
-              <div className="bg-white rounded-2xl border border-gray-200 p-5">
-                <h2 className="text-sm font-semibold text-gray-900 mb-4">Quick Actions</h2>
+              <div className="bg-white dark:bg-slate-900/70 rounded-2xl border border-gray-200 dark:border-slate-800 p-5">
+                <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100 mb-4">Quick Actions</h2>
                 {uploadError && (
                   <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 mb-4">
                     <AlertCircle size={14} className="flex-shrink-0" />
@@ -326,9 +366,9 @@ export default function KBDetailPage() {
               </div>
 
               {/* Summary */}
-              <div className="bg-white rounded-2xl border border-gray-200 p-5">
+              <div className="bg-white dark:bg-slate-900/70 rounded-2xl border border-gray-200 dark:border-slate-800 p-5">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-sm font-semibold text-gray-900">Summary</h2>
+                  <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">Summary</h2>
                   <button
                     onClick={generateSummary}
                     disabled={generatingSummary || readyDocs === 0}
@@ -366,9 +406,9 @@ export default function KBDetailPage() {
               </div>
 
               {/* Documents */}
-              <div className="bg-white rounded-2xl border border-gray-200 p-5">
+              <div className="bg-white dark:bg-slate-900/70 rounded-2xl border border-gray-200 dark:border-slate-800 p-5">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-sm font-semibold text-gray-900">Documents ({docs.length})</h2>
+                  <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">Documents ({docs.length})</h2>
                   <div className="flex items-center gap-3">
                     {pollingIds.size > 0 && (
                       <span className="flex items-center gap-1 text-xs text-amber-600">
@@ -406,6 +446,14 @@ export default function KBDetailPage() {
                         </div>
                         <StatusBadge status={doc.status} />
                         <button
+                          onClick={() => setViewer({ docId: doc.id })}
+                          disabled={doc.status !== "ready"}
+                          title="View document"
+                          className="p-1.5 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          <Eye size={13} />
+                        </button>
+                        <button
                           onClick={() => deleteDoc(doc.id)}
                           disabled={doc.status === "processing"}
                           className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
@@ -422,20 +470,73 @@ export default function KBDetailPage() {
 
           {/* ── CHAT TAB ── */}
           {tab === "chat" && (
-            <div className="bg-white rounded-2xl border border-gray-200 flex flex-col" style={{ height: "calc(100vh - 280px)", minHeight: "480px" }}>
+            <div className="flex gap-4" style={{ height: "calc(100vh - 280px)", minHeight: "480px" }}>
+              {/* Threads sidebar */}
+              <div className="w-56 shrink-0 bg-white dark:bg-slate-900/70 rounded-2xl border border-gray-200 dark:border-slate-800 flex flex-col overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
+                  <span className="text-xs font-semibold text-gray-700 dark:text-slate-300 flex items-center gap-1.5">
+                    <MessagesSquare size={12} /> Conversations
+                  </span>
+                  <button
+                    onClick={newConversation}
+                    title="New conversation"
+                    className="p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-500 dark:text-slate-400 hover:text-cyan-600"
+                  >
+                    <Plus size={14} />
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto py-2">
+                  {conversations.length === 0 && (
+                    <p className="text-xs text-gray-400 dark:text-slate-500 px-4 py-3 text-center">
+                      No conversations yet.<br />Ask a question to start.
+                    </p>
+                  )}
+                  {conversations.map((c) => (
+                    <div
+                      key={c.id}
+                      onClick={() => setActiveConvId(c.id)}
+                      className={`group flex items-start gap-2 px-3 py-2 mx-1 rounded-lg cursor-pointer transition-colors ${
+                        activeConvId === c.id
+                          ? "bg-cyan-50 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300"
+                          : "hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300"
+                      }`}
+                    >
+                      <MessageSquare size={11} className="mt-1 shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium truncate">{c.title}</p>
+                        <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">
+                          {c.msg_count} msg · {timeAgo(c.updated_at)}
+                        </p>
+                      </div>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); deleteConversation(c.id); }}
+                        className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-500 transition-opacity"
+                        title="Delete"
+                      >
+                        <Trash2 size={11} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Chat panel */}
+              <div className="flex-1 min-w-0 bg-white dark:bg-slate-900/70 rounded-2xl border border-gray-200 dark:border-slate-800 flex flex-col">
               {/* Chat header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-slate-800">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-sm font-semibold text-gray-900">Chat Session</h2>
-                  <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                  <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+                    {activeConvId ? conversations.find((c) => c.id === activeConvId)?.title ?? "Chat Session" : "New conversation"}
+                  </h2>
+                  <span className="text-xs text-gray-400 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
                     {msgCount} message{msgCount !== 1 ? "s" : ""}
                   </span>
                 </div>
                 <button
-                  onClick={clearChat}
-                  className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
+                  onClick={newConversation}
+                  className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 border border-gray-200 dark:border-slate-700 px-3 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
                 >
-                  <Trash2 size={11} /> Clear
+                  <Plus size={11} /> New
                 </button>
               </div>
 
@@ -467,25 +568,49 @@ export default function KBDetailPage() {
 
                     <div className={`max-w-[75%] space-y-2 ${msg.role === "user" ? "items-end flex flex-col" : ""}`}>
                       <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
-                        msg.error ? "bg-red-50 border border-red-200 text-red-700"
-                        : msg.role === "user" ? "bg-blue-600 text-white rounded-tr-sm"
-                        : "bg-gray-50 border border-gray-100 text-gray-800 rounded-tl-sm"
+                        msg.error ? "bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/40 text-red-700 dark:text-red-300"
+                        : msg.role === "user" ? "bg-blue-600 dark:bg-cyan-600 text-white rounded-tr-sm"
+                        : "bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-gray-800 dark:text-slate-200 rounded-tl-sm"
                       }`}>
                         {msg.content || <span className="flex items-center gap-2 text-gray-400"><Loader2 size={12} className="animate-spin" />Thinking…</span>}
                       </div>
 
                       {msg.sources && msg.sources.length > 0 && (
                         <div className="space-y-1 w-full">
-                          {msg.sources.map((s, i) => (
-                            <div key={i} className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
-                              <FileText size={11} className="text-blue-400 mt-0.5 flex-shrink-0" />
-                              <div className="min-w-0">
-                                <p className="text-xs font-medium text-blue-700">
-                                  {s.file} <span className="text-blue-400 font-normal">{s.score}% match</span>
-                                </p>
-                                <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{s.excerpt}</p>
+                          {msg.sources.map((s, i) => {
+                            const matchedDoc = docs.find((d) => d.filename === s.file);
+                            return (
+                              <div
+                                key={i}
+                                onClick={() => matchedDoc && setViewer({ docId: matchedDoc.id, highlight: s.excerpt })}
+                                className={`flex items-start gap-2 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-800/40 rounded-lg px-3 py-2 ${matchedDoc ? "cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors" : ""}`}
+                                title={matchedDoc ? "Click to view in document" : undefined}
+                              >
+                                <FileText size={11} className="text-blue-400 mt-0.5 flex-shrink-0" />
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                                    {s.file} <span className="text-blue-400 font-normal">{s.score}% match</span>
+                                    {matchedDoc && <span className="ml-1 text-blue-400 font-normal">· view ↗</span>}
+                                  </p>
+                                  <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 line-clamp-2">{s.excerpt}</p>
+                                </div>
                               </div>
-                            </div>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {msg.role === "assistant" && msg.suggestions && msg.suggestions.length > 0 && (
+                        <div className="flex flex-wrap gap-2 w-full pt-1">
+                          <span className="text-xs text-gray-400 w-full mb-0.5">Try asking:</span>
+                          {msg.suggestions.map((s, i) => (
+                            <button
+                              key={i}
+                              onClick={() => { setInput(s); }}
+                              className="text-xs text-cyan-700 bg-cyan-50 hover:bg-cyan-100 border border-cyan-200 rounded-full px-3 py-1.5 transition-colors text-left"
+                            >
+                              {s}
+                            </button>
                           ))}
                         </div>
                       )}
@@ -496,8 +621,8 @@ export default function KBDetailPage() {
               </div>
 
               {/* Input */}
-              <div className="px-5 py-4 border-t border-gray-100">
-                <div className="flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3 focus-within:border-blue-300 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
+              <div className="px-5 py-4 border-t border-gray-100 dark:border-slate-800">
+                <div className="flex items-center gap-3 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 focus-within:border-blue-300 dark:focus-within:border-cyan-500 focus-within:ring-2 focus-within:ring-blue-100 dark:focus-within:ring-cyan-900/40 transition-all">
                   <input
                     type="text"
                     value={input}
@@ -505,16 +630,17 @@ export default function KBDetailPage() {
                     onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
                     placeholder="Ask a question about your documents..."
                     disabled={chatLoading}
-                    className="flex-1 text-sm text-gray-800 placeholder-gray-400 outline-none bg-transparent disabled:cursor-not-allowed"
+                    className="flex-1 text-sm text-gray-800 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-500 outline-none bg-transparent disabled:cursor-not-allowed"
                   />
                   <button
                     onClick={send}
                     disabled={!input.trim() || chatLoading}
-                    className="w-8 h-8 rounded-lg bg-gray-800 hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+                    className="w-8 h-8 rounded-lg bg-gray-800 dark:bg-cyan-600 hover:bg-gray-700 dark:hover:bg-cyan-500 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
                   >
                     {chatLoading ? <Loader2 size={13} className="text-white animate-spin" /> : <Send size={13} className="text-white" />}
                   </button>
                 </div>
+              </div>
               </div>
             </div>
           )}
@@ -522,8 +648,8 @@ export default function KBDetailPage() {
 
         {/* Sidebar info panel */}
         <div className="w-56 shrink-0 space-y-4">
-          <div className="bg-white rounded-2xl border border-gray-200 p-5">
-            <h3 className="text-sm font-semibold text-gray-900 mb-4">Information</h3>
+          <div className="bg-white dark:bg-slate-900/70 rounded-2xl border border-gray-200 dark:border-slate-800 p-5">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100 mb-4">Information</h3>
             <div className="space-y-3">
               <div>
                 <p className="text-xs text-gray-400">Created</p>
@@ -541,6 +667,13 @@ export default function KBDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Inline document viewer modal */}
+      <DocumentViewer
+        documentId={viewer?.docId ?? null}
+        highlight={viewer?.highlight}
+        onClose={() => setViewer(null)}
+      />
     </div>
   );
 }

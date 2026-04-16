@@ -2,7 +2,7 @@ import Navbar from "@/components/Navbar";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-50/50 via-blue-50/40 to-indigo-50/30 flex flex-col relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-cyan-50/50 via-blue-50/40 to-indigo-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 flex flex-col relative overflow-hidden">
       {/* Cyan accent circle - logo color */}
       <div className="absolute top-0 -right-48 w-96 h-96 bg-gradient-to-br from-cyan-200/15 to-cyan-100/5 rounded-full blur-3xl -z-10" />
       
@@ -16,8 +16,8 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
         <Navbar />
       </div>
       <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-8 relative z-10">{children}</main>
-      <footer className="text-center text-xs text-gray-500 py-5 relative z-10">
-        © 2026 CogniBase. All rights reserved.
+      <footer className="text-center text-xs text-gray-500 dark:text-slate-500 py-5 relative z-10">
+        © 2026 Brainium Information Technologies Pvt Ltd
       </footer>
     </div>
   );
