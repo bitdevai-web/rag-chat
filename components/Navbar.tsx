@@ -3,20 +3,21 @@ import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { LogOut, Settings, ChevronDown, Sun, Moon } from "lucide-react";
+import { LogOut, Settings, ChevronDown, Sun, Moon, Users, Shield } from "lucide-react";
 import { useTheme } from "./ThemeProvider";
 
 export default function Navbar() {
   const router = useRouter();
   const { theme, toggle } = useTheme();
   const [username, setUsername] = useState("user");
+  const [userRole, setUserRole] = useState<string>("member");
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch("/api/auth/me")
       .then((r) => r.json())
-      .then((d) => { if (d.username) setUsername(d.username); })
+      .then((d) => { if (d.username) { setUsername(d.username); setUserRole(d.role ?? "member"); } })
       .catch(() => {});
   }, []);
 
@@ -100,6 +101,23 @@ export default function Navbar() {
               >
                 <Settings size={14} /> Settings
               </Link>
+              <Link
+                href="/team"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 hover:bg-cyan-50/60 dark:hover:bg-slate-800 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors"
+              >
+                <Users size={14} /> Teams
+              </Link>
+              {userRole === "admin" && (
+                <Link
+                  href="/admin"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 hover:bg-cyan-50/60 dark:hover:bg-slate-800 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors"
+                >
+                  <Shield size={14} /> Admin Panel
+                </Link>
+              )}
+              <div className="border-t border-gray-100 dark:border-slate-800 my-1" />
               <button
                 type="button"
                 onClick={logout}

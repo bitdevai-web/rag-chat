@@ -4,9 +4,11 @@ import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, Trash2, Upload, MessageSquare, FileText, Loader2,
-  CheckCircle, AlertCircle, RefreshCw, Send, Zap, X, Plus, MessagesSquare, Eye
+  CheckCircle, AlertCircle, RefreshCw, Send, Zap, X, Plus, MessagesSquare, Eye,
+  UserPlus, UserMinus
 } from "lucide-react";
 import { DocumentViewer } from "@/components/DocumentViewer";
+import { UserAvatar } from "@/components/UserAvatar";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 type KB = { id: number; name: string; description: string; summary: string | null; created_at: string; doc_count: number };
@@ -15,6 +17,7 @@ type Doc = { id: number; filename: string; file_type: string; size_bytes: number
 type Source = { file: string; excerpt: string; score: number };
 type Message = { id: string; role: "user" | "assistant"; content: string; sources?: Source[]; suggestions?: string[]; error?: boolean };
 type Conversation = { id: number; title: string; created_at: string; updated_at: string; msg_count: number };
+type KBMember = { id: number; username: string; email: string; avatar_url: string | null; role: string };
 
 const MAX_DOCS = 5;
 const ACCEPTED = ".pdf,.docx,.txt,.md,.pptx,.xlsx,.csv";
@@ -86,6 +89,13 @@ export default function KBDetailPage() {
   // Document viewer
   const [viewer, setViewer] = useState<{ docId: number; highlight?: string } | null>(null);
 
+  // KB members / sharing
+  const [kbMembers, setKbMembers] = useState<KBMember[]>([]);
+  const [shareInput, setShareInput] = useState("");
+  const [shareRole, setShareRole] = useState("viewer");
+  const [shareError, setShareError] = useState("");
+  const [sharing, setSharing] = useState(false);
+
   // ── Load KB + docs ────────────────────────────────────────────────────────
   const loadKb = useCallback(async () => {
     try {
@@ -110,8 +120,36 @@ export default function KBDetailPage() {
     } catch {}
   }, [kb]);
 
+  const loadKbMembers = useCallback(async () => {
+    if (!kb) return;
+    const res = await fetch(`/api/kb/${kb.id}/members`);
+    if (res.ok) setKbMembers(await res.json());
+  }, [kb]);
+
   useEffect(() => { loadKb(); }, [loadKb]);
-  useEffect(() => { if (kb) loadDocs(); }, [kb, loadDocs]);
+  useEffect(() => { if (kb) { loadDocs(); loadKbMembers(); } }, [kb, loadDocs, loadKbMembers]);
+
+  const shareKb = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!kb) return;
+    setShareError("");
+    setSharing(true);
+    const res = await fetch(`/api/kb/${kb.id}/members`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username_or_email: shareInput, role: shareRole }),
+    });
+    const data = await res.json();
+    if (!res.ok) setShareError(data.error ?? "Failed");
+    else { setShareInput(""); loadKbMembers(); }
+    setSharing(false);
+  };
+
+  const removeKbMember = async (userId: number) => {
+    if (!kb) return;
+    await fetch(`/api/kb/${kb.id}/members?user_id=${userId}`, { method: "DELETE" });
+    loadKbMembers();
+  };
 
   // Poll processing docs
   useEffect(() => {
@@ -653,7 +691,7 @@ export default function KBDetailPage() {
             <div className="space-y-3">
               <div>
                 <p className="text-xs text-gray-400">Created</p>
-                <p className="text-xs font-medium text-gray-700 mt-0.5">{timeAgo(kb.created_at)}</p>
+                <p className="text-xs font-medium text-gray-700 dark:text-slate-300 mt-0.5">{timeAgo(kb.created_at)}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-400">Documents</p>
@@ -664,6 +702,65 @@ export default function KBDetailPage() {
                 <p className="text-xs font-medium text-emerald-600 mt-0.5">Active</p>
               </div>
             </div>
+          </div>
+
+          {/* Share / Members */}
+          <div className="bg-white dark:bg-slate-900/70 rounded-2xl border border-gray-200 dark:border-slate-800 p-5">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100 mb-3 flex items-center gap-2">
+              <UserPlus size={13} /> Share
+            </h3>
+
+            {/* Member list */}
+            {kbMembers.length > 0 && (
+              <div className="space-y-2 mb-3">
+                {kbMembers.map((m) => (
+                  <div key={m.id} className="flex items-center gap-2">
+                    <UserAvatar username={m.username} avatar_url={m.avatar_url} size={24} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-gray-700 dark:text-slate-300 truncate">{m.username}</p>
+                      <p className="text-[10px] text-gray-400 capitalize">{m.role}</p>
+                    </div>
+                    <button
+                      onClick={() => removeKbMember(m.id)}
+                      className="p-1 text-gray-300 hover:text-red-500 transition-colors"
+                      title="Remove"
+                    >
+                      <UserMinus size={11} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Invite form */}
+            <form onSubmit={shareKb} className="space-y-2">
+              <input
+                value={shareInput}
+                onChange={(e) => setShareInput(e.target.value)}
+                placeholder="Username or email"
+                required
+                className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-cyan-400 bg-transparent text-gray-700 dark:text-slate-200"
+              />
+              <div className="flex gap-2">
+                <select
+                  value={shareRole}
+                  onChange={(e) => setShareRole(e.target.value)}
+                  className="flex-1 border border-gray-200 dark:border-slate-700 rounded-lg px-2 py-1.5 text-xs outline-none bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-200"
+                >
+                  <option value="viewer">Viewer</option>
+                  <option value="editor">Editor</option>
+                  <option value="owner">Owner</option>
+                </select>
+                <button
+                  type="submit"
+                  disabled={sharing}
+                  className="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white text-xs rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {sharing ? <Loader2 size={11} className="animate-spin" /> : "Add"}
+                </button>
+              </div>
+              {shareError && <p className="text-[10px] text-red-500">{shareError}</p>}
+            </form>
           </div>
         </div>
       </div>

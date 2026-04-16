@@ -1,38 +1,44 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getDb } from "@/lib/db";
+import { verifyPassword, createSessionToken, auditLog, SESSION_COOKIE } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
-
-const VALID_USERNAME = process.env.LOGIN_USERNAME || "admin";
-const VALID_PASSWORD = process.env.LOGIN_PASSWORD || "admin123";
-const SESSION_TOKEN   = "rag_session";
-const SECRET          = process.env.SESSION_SECRET || "rag-chat-secret-2024";
 
 export async function POST(req: NextRequest) {
   try {
     const { username, password } = await req.json();
-
     if (!username || !password) {
       return NextResponse.json({ error: "Username and password required" }, { status: 400 });
     }
 
-    if (username !== VALID_USERNAME || password !== VALID_PASSWORD) {
+    const db = getDb();
+    const user = db
+      .prepare("SELECT id, username, email, password_hash, role FROM users WHERE username = ? OR email = ?")
+      .get(username, username) as
+      | { id: number; username: string; email: string; password_hash: string; role: string }
+      | undefined;
+
+    if (!user || !user.password_hash) {
       return NextResponse.json({ error: "Invalid username or password" }, { status: 401 });
     }
 
-    // Simple signed token: base64(username:timestamp:secret)
-    const payload = Buffer.from(`${username}:${Date.now()}:${SECRET}`).toString("base64");
+    const valid = await verifyPassword(password, user.password_hash);
+    if (!valid) {
+      auditLog(user.id, "login_failed", "user", user.id);
+      return NextResponse.json({ error: "Invalid username or password" }, { status: 401 });
+    }
 
-    const res = NextResponse.json({ ok: true });
-    res.cookies.set(SESSION_TOKEN, payload, {
+    const token = createSessionToken(user.id);
+    auditLog(user.id, "login", "user", user.id);
+
+    const res = NextResponse.json({ ok: true, user: { id: user.id, username: user.username, role: user.role } });
+    res.cookies.set(SESSION_COOKIE, token, {
       httpOnly: true,
       sameSite: "lax",
       path: "/",
-      // 7 days
       maxAge: 60 * 60 * 24 * 7,
-      // secure: true in production (set via env)
       secure: process.env.NODE_ENV === "production",
     });
-
     return res;
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
