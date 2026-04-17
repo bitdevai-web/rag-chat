@@ -1,38 +1,82 @@
 version: "3.9"
 
+# ─────────────────────────────────────────────────────────────────────────────
+#  CogniBase — Docker Compose
+#  Phase 2 (Collaboration): multi-user, teams, OAuth, audit log
+#
+#  Quick start:
+#    cp .env.example .env      # fill in your secrets
+#    docker compose up -d --build
+#    docker compose logs -f
+# ─────────────────────────────────────────────────────────────────────────────
+
 services:
-  rag-chat:
+  cognibase:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: rag-chat
+      args:
+        NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
+    image: cognibase:latest
+    container_name: cognibase
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "${PORT:-3000}:3000"
     environment:
-      # ── Auth ──────────────────────────────────
-      LOGIN_USERNAME:  ${LOGIN_USERNAME:-admin}
-      LOGIN_PASSWORD:  ${LOGIN_PASSWORD:-admin123}
-      SESSION_SECRET:  ${SESSION_SECRET:-change-me-please}
-      # ── LLM ───────────────────────────────────
-      LLM_PROVIDER:    ${LLM_PROVIDER:-anthropic}
-      LLM_MODEL:       ${LLM_MODEL:-claude-sonnet-4-6}
-      LLM_API_KEY:     ${LLM_API_KEY:-}
-      # ── RAG ───────────────────────────────────
-      CHUNK_SIZE:      ${CHUNK_SIZE:-512}
-      CHUNK_OVERLAP:   ${CHUNK_OVERLAP:-50}
-      TOP_K:           ${TOP_K:-3}
-      NODE_ENV:        production
+      NODE_ENV: production
+
+      # ── Auth & Session ──────────────────────────────────────────────────────
+      # Used only to seed the first admin account on a blank database.
+      # After first login you can create additional users via Admin Panel.
+      LOGIN_USERNAME:   ${LOGIN_USERNAME:-admin}
+      LOGIN_PASSWORD:   ${LOGIN_PASSWORD:-admin123}
+      # REQUIRED: change to a long random string before deploying to production
+      SESSION_SECRET:   ${SESSION_SECRET:-change-me-to-a-32-char-random-string}
+
+      # ── OAuth — Google (optional) ───────────────────────────────────────────
+      # Create credentials at: https://console.cloud.google.com/apis/credentials
+      # Authorised redirect URI must be: {NEXT_PUBLIC_BASE_URL}/api/auth/oauth/google/callback
+      GOOGLE_CLIENT_ID:     ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      NEXT_PUBLIC_BASE_URL: ${NEXT_PUBLIC_BASE_URL:-http://localhost:3000}
+
+      # ── LLM Provider ───────────────────────────────────────────────────────
+      # Provider: "anthropic" | "openai"  (can also be set in Settings UI)
+      LLM_PROVIDER: ${LLM_PROVIDER:-anthropic}
+      LLM_MODEL:    ${LLM_MODEL:-claude-sonnet-4-6}
+      LLM_API_KEY:  ${LLM_API_KEY:-}
+
+      # ── RAG Parameters (optional — defaults shown) ──────────────────────────
+      CHUNK_SIZE:    ${CHUNK_SIZE:-512}
+      CHUNK_OVERLAP: ${CHUNK_OVERLAP:-50}
+      TOP_K:         ${TOP_K:-3}
+
     volumes:
-      # Persist database, vectors, and downloaded model weights
-      - rag_data:/app/data
+      # Persist ALL state: SQLite DB, LanceDB vectors, downloaded ONNX model weights
+      - cognibase_data:/app/data
+
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/categories"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/auth/me"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 20s
+      start_period: 30s
+
+  # ── Optional: Nginx reverse proxy ──────────────────────────────────────────
+  # Uncomment to add HTTPS termination / custom domain in front of the app.
+  # nginx:
+  #   image: nginx:alpine
+  #   container_name: cognibase-nginx
+  #   restart: unless-stopped
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   volumes:
+  #     - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+  #     - /etc/letsencrypt:/etc/letsencrypt:ro
+  #   depends_on:
+  #     - cognibase
 
 volumes:
-  rag_data:
+  cognibase_data:
     driver: local
