@@ -84,7 +84,7 @@ export default function FeaturesPage() {
       {/* Hero */}
       <div className="text-center mb-12">
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-violet-600 shadow-lg shadow-blue-200 mb-5">
-          <CogniBaseLogo size={30} variant="white" />
+          <CogniBaseLogo height={30} variant="dark" />
         </div>
         <h1 className="text-3xl font-bold text-gray-900 mb-3">Browse Features</h1>
         <p className="text-gray-500 max-w-xl mx-auto text-sm leading-relaxed">

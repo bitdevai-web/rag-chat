@@ -27,8 +27,7 @@ export default function Sidebar() {
     <aside className="w-56 bg-white border-r border-gray-200 flex flex-col">
       {/* Logo */}
       <div className="flex items-center gap-2.5 px-5 py-5 border-b border-gray-100">
-        <CogniBaseLogo size={30} />
-        <span className="font-bold text-gray-900 text-sm tracking-tight">CogniBase</span>
+        <CogniBaseLogo height={28} variant="light" />
       </div>
 
       {/* Nav */}

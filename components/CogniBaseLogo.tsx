@@ -1,40 +1,83 @@
-let _counter = 0;
+"use client";
 
-export function CogniBaseLogo({
-  size = 32,
-  variant = "color", // "color" | "white"
-}: {
-  size?: number;
-  variant?: "color" | "white";
-}) {
-  // Unique ID per render to avoid SVG gradient conflicts when multiple logos on page
-  const id = `cbg-${++_counter}`;
+type Props = {
+  height?: number;
+  variant?: "light" | "dark"; // light = dark wordmark, dark = white wordmark
+};
 
-  if (variant === "white") {
-    return (
-      <svg width={size} height={size} viewBox="0 0 100 100" fill="none">
-        {/* 4 concentric stroke arcs — white variant */}
-        <path d="M22 88 A52 52 0 1 0 22 12" stroke="white" strokeWidth="9" strokeLinecap="round" fill="none" opacity="1" />
-        <path d="M34 78 A37 37 0 1 0 34 22" stroke="white" strokeWidth="9" strokeLinecap="round" fill="none" opacity="0.8" />
-        <path d="M44 68 A24 24 0 1 0 44 32" stroke="white" strokeWidth="9" strokeLinecap="round" fill="none" opacity="0.65" />
-        <path d="M52 61 A13 13 0 1 0 52 39" stroke="white" strokeWidth="9" strokeLinecap="round" fill="none" opacity="0.5" />
-      </svg>
-    );
-  }
+export function CogniBaseLogo({ height = 36, variant = "light" }: Props) {
+  const iconW = Math.round(height * (220 / 52));
+  const wordmarkFill = variant === "dark" ? "#f1f5f9" : "#1e293b";
+  const taglineFill  = variant === "dark" ? "#64748b" : "#94a3b8";
 
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" fill="none">
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 220 52"
+      fill="none"
+      width={iconW}
+      height={height}
+      aria-label="CogniBase"
+      role="img"
+      style={{ display: "block" }}
+    >
       <defs>
-        <linearGradient id={id} x1="0" y1="50" x2="65" y2="50" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#00CFFF" />
-          <stop offset="1" stopColor="#6060EE" />
+        <linearGradient id="cb-ig" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#06b6d4" />
+          <stop offset="100%" stopColor="#6366f1" />
+        </linearGradient>
+        <linearGradient id="cb-dg" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#22d3ee" />
+          <stop offset="100%" stopColor="#818cf8" />
+        </linearGradient>
+        <linearGradient id="cb-tg" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#06b6d4" />
+          <stop offset="100%" stopColor="#6366f1" />
         </linearGradient>
       </defs>
-      {/* 4 concentric stroke arcs — large-arc flag=1, sweep=0 (counterclockwise open-right C-shape) */}
-      <path d="M22 88 A52 52 0 1 0 22 12" stroke={`url(#${id})`} strokeWidth="9" strokeLinecap="round" fill="none" />
-      <path d="M34 78 A37 37 0 1 0 34 22" stroke={`url(#${id})`} strokeWidth="9" strokeLinecap="round" fill="none" />
-      <path d="M44 68 A24 24 0 1 0 44 32" stroke={`url(#${id})`} strokeWidth="9" strokeLinecap="round" fill="none" />
-      <path d="M52 61 A13 13 0 1 0 52 39" stroke={`url(#${id})`} strokeWidth="9" strokeLinecap="round" fill="none" />
+
+      {/* Hex ring */}
+      <path d="M26 4 L44 14 L44 34 L26 44 L8 34 L8 14 Z"
+        stroke="url(#cb-ig)" strokeWidth="2.5" strokeLinejoin="round" fill="none" />
+      {/* Inner glow */}
+      <path d="M26 10 L38 17 L38 31 L26 38 L14 31 L14 17 Z"
+        fill="url(#cb-ig)" fillOpacity="0.1" />
+      {/* Centre node */}
+      <circle cx="26" cy="24" r="3.5" fill="url(#cb-ig)" />
+
+      {/* Spokes */}
+      <line x1="26" y1="24" x2="26"   y2="13"   stroke="url(#cb-ig)" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="26" y1="24" x2="26"   y2="35"   stroke="url(#cb-ig)" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="26" y1="24" x2="35"   y2="18.5" stroke="url(#cb-ig)" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="26" y1="24" x2="35"   y2="29.5" stroke="url(#cb-ig)" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="26" y1="24" x2="17"   y2="18.5" stroke="url(#cb-ig)" strokeWidth="1.5" strokeLinecap="round" />
+      <line x1="26" y1="24" x2="17"   y2="29.5" stroke="url(#cb-ig)" strokeWidth="1.5" strokeLinecap="round" />
+
+      {/* Outer nodes */}
+      <circle cx="26"   cy="12"   r="2" fill="url(#cb-dg)" />
+      <circle cx="26"   cy="36"   r="2" fill="url(#cb-dg)" />
+      <circle cx="36.5" cy="17.5" r="2" fill="url(#cb-dg)" />
+      <circle cx="36.5" cy="30.5" r="2" fill="url(#cb-dg)" />
+      <circle cx="15.5" cy="17.5" r="2" fill="url(#cb-dg)" />
+      <circle cx="15.5" cy="30.5" r="2" fill="url(#cb-dg)" />
+
+      {/* "Cogni" wordmark */}
+      <text x="58" y="32"
+        fontFamily="'Inter','SF Pro Display',-apple-system,BlinkMacSystemFont,sans-serif"
+        fontSize="22" fontWeight="600" letterSpacing="-0.5"
+        fill={wordmarkFill}>Cogni</text>
+
+      {/* "Base" gradient */}
+      <text x="114" y="32"
+        fontFamily="'Inter','SF Pro Display',-apple-system,BlinkMacSystemFont,sans-serif"
+        fontSize="22" fontWeight="700" letterSpacing="-0.5"
+        fill="url(#cb-tg)">Base</text>
+
+      {/* Tagline */}
+      <text x="59" y="44"
+        fontFamily="'Inter','SF Pro Display',-apple-system,BlinkMacSystemFont,sans-serif"
+        fontSize="8.5" fontWeight="400" letterSpacing="1.8"
+        fill={taglineFill}>KNOWLEDGE · AI</text>
     </svg>
   );
 }
