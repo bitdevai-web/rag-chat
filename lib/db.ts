@@ -230,6 +230,25 @@ function init(db: Database.Database) {
   try { db.exec("CREATE INDEX IF NOT EXISTS idx_comments_conv  ON comments(conversation_id)"); } catch {}
   try { db.exec("CREATE INDEX IF NOT EXISTS idx_team_members   ON team_members(user_id)"); } catch {}
 
+  // ── Contract Comparison (Phase 3) ────────────────────────────────────────
+  // is_baseline flag on documents
+  try { db.exec("ALTER TABLE documents ADD COLUMN is_baseline INTEGER DEFAULT 0"); } catch {}
+  // store full comparison results per document
+  try {
+    db.exec(`CREATE TABLE IF NOT EXISTS contract_comparisons (
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      document_id     INTEGER NOT NULL UNIQUE,
+      baseline_doc_id INTEGER NOT NULL,
+      risk_level      TEXT    NOT NULL DEFAULT 'low',
+      result_json     TEXT    NOT NULL,
+      created_at      TEXT    DEFAULT (datetime('now')),
+      updated_at      TEXT    DEFAULT (datetime('now')),
+      FOREIGN KEY (document_id)     REFERENCES documents(id) ON DELETE CASCADE,
+      FOREIGN KEY (baseline_doc_id) REFERENCES documents(id) ON DELETE CASCADE
+    )`);
+  } catch {}
+  try { db.exec("CREATE INDEX IF NOT EXISTS idx_comparison_doc ON contract_comparisons(document_id)"); } catch {}
+
   // Seed a default admin user if no users exist yet
   const userCount = (db.prepare("SELECT COUNT(*) as n FROM users").get() as { n: number }).n;
   if (userCount === 0) {

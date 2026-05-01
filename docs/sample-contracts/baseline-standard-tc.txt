@@ -1,0 +1,107 @@
+MASTER SERVICES AGREEMENT — STANDARD TERMS & CONDITIONS
+Brainium Information Technologies Pvt Ltd ("Company")
+Version: 3.1 | Effective: 1 January 2025
+
+────────────────────────────────────────────────────────────
+THESE ARE THE COMPANY'S STANDARD TERMS. ALL VENDOR AND PARTNER
+CONTRACTS MUST BE REVIEWED AGAINST THIS BASELINE BEFORE SIGNING.
+────────────────────────────────────────────────────────────
+
+1. DEFINITIONS
+
+1.1 "Agreement" means these terms and conditions together with any Statement of Work (SOW) executed by both parties.
+1.2 "Services" means the work, deliverables, or software described in the applicable SOW.
+1.3 "Confidential Information" means any non-public information disclosed by either party.
+1.4 "Intellectual Property" or "IP" means patents, copyrights, trademarks, trade secrets, and all other proprietary rights.
+1.5 "Work Product" means all deliverables, software, reports, designs, or materials created specifically for the Company under this Agreement.
+
+
+2. PAYMENT TERMS
+
+2.1 Invoices shall be issued by the Vendor within 5 business days of milestone completion or monthly, whichever applies per the SOW.
+2.2 The Company shall pay all undisputed invoices within NET 30 DAYS from the date of receipt.
+2.3 Disputed invoices must be raised in writing within 10 business days of receipt. Disputes do not suspend payment of the undisputed portion.
+2.4 Late payments shall accrue interest at 1.5% per month on the outstanding balance.
+2.5 All amounts are in Indian Rupees (INR) unless otherwise stated in the SOW. GST shall be applied as per applicable law.
+2.6 The Company reserves the right to withhold final payment until all deliverables are accepted in writing.
+
+
+3. INTELLECTUAL PROPERTY & OWNERSHIP
+
+3.1 All Work Product created by the Vendor specifically for the Company under this Agreement shall be considered "work made for hire" and all rights, title, and interest — including all IP rights — shall vest exclusively in the Company upon creation.
+3.2 The Vendor assigns to the Company all rights in Work Product that do not automatically vest by operation of law.
+3.3 The Vendor retains ownership of its pre-existing proprietary tools, frameworks, and libraries ("Pre-existing IP"). The Vendor grants the Company a perpetual, royalty-free, irrevocable licence to use Pre-existing IP solely as embedded in the Work Product.
+3.4 Derivative works of Work Product shall be owned by the Company.
+3.5 The Vendor shall not use the Company's name, brand, or Work Product for any marketing, portfolio, or promotional purposes without prior written consent.
+
+
+4. CONFIDENTIALITY
+
+4.1 Both parties shall keep all Confidential Information strictly confidential and shall not disclose it to any third party without the prior written consent of the disclosing party.
+4.2 Confidential Information shall be used only for the purpose of performing obligations under this Agreement.
+4.3 These obligations shall survive for 5 YEARS after termination or expiry of this Agreement.
+4.4 Exceptions apply where information: (a) is or becomes publicly available through no fault of the receiving party; (b) was already known to the receiving party; (c) is independently developed; or (d) is required to be disclosed by law or court order, provided the disclosing party is given prompt written notice.
+4.5 The Vendor shall ensure that its employees, contractors, and subcontractors are bound by equivalent confidentiality obligations.
+
+
+5. LIABILITY
+
+5.1 NEITHER PARTY SHALL BE LIABLE FOR ANY INDIRECT, SPECIAL, INCIDENTAL, PUNITIVE, OR CONSEQUENTIAL DAMAGES, INCLUDING LOSS OF PROFIT, REVENUE, DATA, OR BUSINESS OPPORTUNITY, ARISING OUT OF OR IN CONNECTION WITH THIS AGREEMENT, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+5.2 THE TOTAL AGGREGATE LIABILITY OF EITHER PARTY TO THE OTHER FOR ANY CLAIM ARISING UNDER OR IN CONNECTION WITH THIS AGREEMENT SHALL NOT EXCEED THE TOTAL FEES PAID OR PAYABLE BY THE COMPANY TO THE VENDOR IN THE 12-MONTH PERIOD IMMEDIATELY PRECEDING THE EVENT GIVING RISE TO THE CLAIM ("LIABILITY CAP").
+5.3 The Liability Cap shall not apply to: (a) death or personal injury caused by negligence; (b) fraud or fraudulent misrepresentation; (c) wilful misconduct; (d) breach of confidentiality obligations; (e) IP infringement.
+
+
+6. INDEMNIFICATION
+
+6.1 The Vendor shall indemnify, defend, and hold harmless the Company and its officers, directors, employees, and agents from and against any third-party claims, damages, losses, and expenses (including reasonable legal fees) arising from: (a) breach of this Agreement by the Vendor; (b) infringement of any third-party IP rights by the Work Product; (c) gross negligence or wilful misconduct of the Vendor; (d) breach of applicable data protection laws.
+6.2 The Company shall indemnify the Vendor from third-party claims arising solely from the Company's gross negligence or wilful misconduct.
+6.3 The indemnified party shall: (a) notify the indemnifying party promptly in writing; (b) give the indemnifying party sole control of the defence; (c) provide reasonable cooperation.
+
+
+7. TERM & TERMINATION
+
+7.1 This Agreement commences on the Effective Date and continues until the completion of all active SOWs, unless earlier terminated.
+7.2 Either party may terminate this Agreement or any SOW for convenience by providing 30 DAYS' WRITTEN NOTICE to the other party.
+7.3 Either party may terminate immediately upon written notice if: (a) the other party materially breaches this Agreement and fails to cure the breach within 15 days of written notice; (b) the other party becomes insolvent, files for bankruptcy, or ceases to carry on business.
+7.4 Upon termination: (a) the Company shall pay for all Services satisfactorily completed up to the termination date; (b) the Vendor shall promptly return or destroy all Confidential Information of the Company; (c) all Work Product shall be delivered to the Company in its current state; (d) accrued rights and obligations shall survive.
+7.5 Sections 3, 4, 5, 6, 9, and 10 shall survive termination.
+
+
+8. WARRANTIES
+
+8.1 The Vendor warrants that: (a) it has full authority to enter into this Agreement; (b) Services will be performed with reasonable skill, care, and diligence by suitably qualified personnel; (c) Work Product will conform to the specifications in the SOW; (d) the Work Product will not infringe any third-party IP rights; (e) the Vendor complies with all applicable laws including data protection, employment, and anti-bribery laws.
+8.2 If any Services or Work Product fail to meet the above warranties, the Vendor shall, at no additional cost, promptly remedy the defect. If the defect cannot be remedied within 30 days, the Company may terminate the relevant SOW and receive a full refund of fees paid for the defective deliverable.
+8.3 THE WARRANTIES ABOVE ARE IN LIEU OF ALL OTHER WARRANTIES, EXPRESS OR IMPLIED, INCLUDING IMPLIED WARRANTIES OF MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+
+
+9. DATA PROTECTION
+
+9.1 Each party shall comply with applicable data protection laws, including the Information Technology Act 2000, the Digital Personal Data Protection Act 2023 (DPDPA), and, where applicable, the EU General Data Protection Regulation (GDPR).
+9.2 Where the Vendor processes personal data on behalf of the Company, it does so as a Data Processor. The Vendor shall: (a) process data only on documented instructions from the Company; (b) implement appropriate technical and organisational security measures; (c) not sub-process personal data without prior written consent; (d) assist the Company in responding to data subject requests; (e) notify the Company within 48 HOURS of becoming aware of a personal data breach.
+9.3 Upon termination, the Vendor shall delete or return all personal data within 30 days.
+
+
+10. GOVERNING LAW & DISPUTE RESOLUTION
+
+10.1 This Agreement shall be governed by and construed in accordance with the laws of India.
+10.2 The courts of Bengaluru, Karnataka shall have exclusive jurisdiction over any disputes arising out of or in connection with this Agreement.
+10.3 Prior to litigation, the parties shall attempt to resolve any dispute amicably through good-faith negotiations for a period of 30 days from written notice of the dispute.
+10.4 If the dispute cannot be resolved by negotiation, it shall be referred to arbitration under the Arbitration and Conciliation Act 1996, with a sole arbitrator appointed by mutual agreement, seated in Bengaluru.
+
+
+11. GENERAL
+
+11.1 Force Majeure: Neither party shall be liable for delays or failures caused by circumstances beyond their reasonable control (including acts of God, war, pandemic, or government action) provided the affected party gives prompt written notice and uses reasonable efforts to mitigate the impact. If a force majeure event continues for more than 60 days, either party may terminate without penalty.
+11.2 Assignment: Neither party may assign this Agreement or any rights hereunder without the prior written consent of the other party, except the Company may assign to an affiliate or successor entity upon notice.
+11.3 Entire Agreement: This Agreement, together with all SOWs, constitutes the entire agreement between the parties and supersedes all prior negotiations, representations, and understandings.
+11.4 Amendments: No amendment is valid unless made in writing and signed by authorised representatives of both parties.
+11.5 Waiver: Failure to enforce any right shall not constitute a waiver.
+11.6 Severability: If any provision is found invalid, the remaining provisions continue in full force.
+11.7 Notices: All formal notices must be in writing and delivered by email (with read receipt) or courier to the registered addresses of the parties.
+11.8 Subcontracting: The Vendor shall not subcontract any part of the Services without the Company's prior written consent.
+11.9 Anti-Bribery: Both parties warrant compliance with the Prevention of Corruption Act 1988 and applicable anti-bribery laws.
+11.10 Insurance: The Vendor shall maintain adequate professional indemnity and public liability insurance throughout the term of this Agreement and provide certificates of insurance upon request.
+
+────────────────────────────────────────────────────────────
+END OF BASELINE STANDARD TERMS & CONDITIONS
+────────────────────────────────────────────────────────────

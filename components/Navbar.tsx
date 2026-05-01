@@ -1,130 +1,113 @@
 "use client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { LogOut, Settings, ChevronDown, Sun, Moon, Users, Shield } from "lucide-react";
-import { useTheme } from "./ThemeProvider";
+import { LogOut, Settings, ChevronDown, Users, Shield } from "lucide-react";
 import { CogniBaseLogo } from "./CogniBaseLogo";
 
 export default function Navbar() {
-  const router = useRouter();
-  const { theme, toggle } = useTheme();
+  const router   = useRouter();
+  const pathname = usePathname();
   const [username, setUsername] = useState("user");
-  const [userRole, setUserRole] = useState<string>("member");
+  const [userRole, setUserRole] = useState("member");
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    fetch("/api/auth/me")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.username) setUsername(d.username);
-        if (d.role)     setUserRole(d.role);
-      })
-      .catch(() => {});
+    fetch("/api/auth/me").then(r => r.json()).then(d => {
+      if (d.username) setUsername(d.username);
+      if (d.role)     setUserRole(d.role);
+    }).catch(() => {});
   }, []);
 
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node))
-        setMenuOpen(false);
+    const h = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuOpen(false);
     };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
   }, []);
 
   const logout = async () => {
     setMenuOpen(false);
-    try {
-      await fetch("/api/auth/logout", { method: "POST" });
-    } finally {
-      router.replace("/login");
-    }
+    try { await fetch("/api/auth/logout", { method: "POST" }); }
+    finally { router.replace("/login"); }
+  };
+
+  const navLink = (href: string, label: string) => {
+    const active = pathname.startsWith(href);
+    return (
+      <Link
+        key={href}
+        href={href}
+        className={`relative text-sm font-medium transition-colors pb-0.5 ${
+          active ? "text-cyan-600" : "text-slate-500 hover:text-slate-800"
+        }`}
+      >
+        {label}
+        {active && (
+          <span className="absolute -bottom-[14px] left-0 right-0 h-0.5 rounded-full logo-gradient-bg" />
+        )}
+      </Link>
+    );
   };
 
   return (
-    <div className="px-6 py-3 flex justify-center">
-      <nav className="w-full max-w-6xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl rounded-2xl shadow-lg border border-cyan-300/30 hover:border-cyan-400/40 dark:border-cyan-500/20 dark:hover:border-cyan-400/30 px-6 py-3.5 flex items-center justify-between transition-all duration-300">
-
-        {/* Logo — inline SVG, no external file needed */}
+    <div className="px-6 pb-0 flex justify-center">
+      <nav className="w-full max-w-6xl bg-white/85 backdrop-blur-md rounded-2xl border border-slate-200 shadow-sm px-6 py-3.5 flex items-center justify-between"
+        style={{ boxShadow: "0 1px 3px rgba(6,182,212,0.08), 0 1px 2px rgba(99,102,241,0.06)" }}
+      >
+        {/* Logo */}
         <Link href="/dashboard" className="flex items-center shrink-0 hover:opacity-80 transition-opacity">
-          <CogniBaseLogo height={36} variant={theme === "dark" ? "dark" : "light"} />
+          <CogniBaseLogo height={34} variant="light" />
         </Link>
 
         {/* Nav links */}
-        <div className="flex items-center gap-6 text-sm text-gray-600 dark:text-slate-300">
-          <Link href="/dashboard" className="hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors font-medium">
-            My Knowledge Bases
-          </Link>
-          <Link href="/features" className="hover:text-blue-600 dark:hover:text-blue-400 transition-colors font-medium">
-            Browse Features
-          </Link>
-          <Link href="/support" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium">
-            Get Support
-          </Link>
+        <div className="flex items-center gap-8">
+          {navLink("/dashboard", "My Knowledge Bases")}
+          {navLink("/compare",   "Contract Compare")}
+          {navLink("/features",  "Features")}
+          {navLink("/support",   "Support")}
         </div>
 
-        {/* Right: theme toggle + user menu */}
-        <div className="flex items-center gap-3 shrink-0">
-
-          {/* Theme toggle */}
+        {/* User menu */}
+        <div className="relative shrink-0" ref={menuRef}>
           <button
-            onClick={toggle}
-            aria-label="Toggle theme"
-            className="p-2 rounded-lg text-gray-500 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors"
+            onClick={() => setMenuOpen(o => !o)}
+            className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-slate-50 transition-colors"
           >
-            {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+            <div className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-sm logo-gradient-bg">
+              {username[0]?.toUpperCase()}
+            </div>
+            <span className="text-sm text-slate-700 font-medium">{username}</span>
+            <ChevronDown size={13} className="text-slate-400" />
           </button>
 
-          {/* User dropdown */}
-          <div className="relative" ref={menuRef}>
-            <button
-              onClick={() => setMenuOpen((o) => !o)}
-              className="flex items-center gap-2 hover:opacity-70 transition-opacity"
+          {menuOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-200 rounded-xl shadow-lg z-50 py-1.5 overflow-hidden"
+              style={{ boxShadow: "0 8px 24px rgba(6,182,212,0.1), 0 2px 8px rgba(99,102,241,0.08)" }}
             >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-indigo-500 flex items-center justify-center text-white text-xs font-bold shadow-md">
-                {username[0]?.toUpperCase()}
-              </div>
-              <span className="text-sm text-gray-700 dark:text-slate-200 font-medium">{username}</span>
-              <ChevronDown size={13} className="text-gray-400 dark:text-slate-400" />
-            </button>
-
-            {menuOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 border border-cyan-200/40 dark:border-slate-700 rounded-xl shadow-xl z-50 py-1 overflow-hidden">
-                <Link
-                  href="/settings"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 hover:bg-cyan-50/60 dark:hover:bg-slate-800 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors"
-                >
-                  <Settings size={14} /> Settings
+              <Link href="/settings" onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
+                <Settings size={14} /> Settings
+              </Link>
+              <Link href="/team" onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
+                <Users size={14} /> Teams
+              </Link>
+              {userRole === "admin" && (
+                <Link href="/admin" onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-600 hover:bg-cyan-50 hover:text-cyan-700 transition-colors">
+                  <Shield size={14} /> Admin Panel
                 </Link>
-                <Link
-                  href="/team"
-                  onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 hover:bg-cyan-50/60 dark:hover:bg-slate-800 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors"
-                >
-                  <Users size={14} /> Teams
-                </Link>
-                {userRole === "admin" && (
-                  <Link
-                    href="/admin"
-                    onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 dark:text-slate-200 hover:bg-cyan-50/60 dark:hover:bg-slate-800 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors"
-                  >
-                    <Shield size={14} /> Admin Panel
-                  </Link>
-                )}
-                <div className="border-t border-gray-100 dark:border-slate-800 my-1" />
-                <button
-                  type="button"
-                  onClick={logout}
-                  className="w-full text-left flex items-center gap-2 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
-                >
-                  <LogOut size={14} /> Sign Out
-                </button>
-              </div>
-            )}
-          </div>
+              )}
+              <div className="border-t border-slate-100 my-1" />
+              <button onClick={logout}
+                className="w-full text-left flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors">
+                <LogOut size={14} /> Sign Out
+              </button>
+            </div>
+          )}
         </div>
       </nav>
     </div>

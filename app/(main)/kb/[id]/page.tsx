@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   ArrowLeft, Trash2, Upload, MessageSquare, FileText, Loader2,
   CheckCircle, AlertCircle, RefreshCw, Send, Zap, X, Plus, MessagesSquare, Eye,
-  UserPlus, UserMinus
+  UserPlus, UserMinus, Shield, BookMarked, ChevronDown, ChevronUp, XCircle, Info
 } from "lucide-react";
 import { DocumentViewer } from "@/components/DocumentViewer";
 import { UserAvatar } from "@/components/UserAvatar";
@@ -13,7 +13,12 @@ import { UserAvatar } from "@/components/UserAvatar";
 // ── Types ────────────────────────────────────────────────────────────────────
 type KB = { id: number; name: string; description: string; summary: string | null; created_at: string; doc_count: number };
 type DocStatus = "ready" | "processing" | "error";
-type Doc = { id: number; filename: string; file_type: string; size_bytes: number; status: DocStatus; created_at: string };
+type Doc = { id: number; filename: string; file_type: string; size_bytes: number; status: DocStatus; created_at: string; is_baseline: number };
+type RiskLevel = "low" | "medium" | "high" | "critical";
+type FindingType = "modified" | "missing" | "added" | "risky";
+type Finding = { id: number; type: FindingType; severity: RiskLevel; clause: string; baseline: string | null; incoming: string | null; risk: string; recommendation: string };
+type ComparisonResult = { summary: string; riskLevel: RiskLevel; stats: { clausesAnalyzed: number; differences: number; missing: number; added: number; risky: number }; findings: Finding[]; acceptableClauses: string[] };
+type StoredComparison = { baseline_filename: string; risk_level: string; updated_at: string; result: ComparisonResult } | null;
 type Source = { file: string; excerpt: string; score: number };
 type Message = { id: string; role: "user" | "assistant"; content: string; sources?: Source[]; suggestions?: string[]; error?: boolean };
 type Conversation = { id: number; title: string; created_at: string; updated_at: string; msg_count: number };
@@ -89,6 +94,11 @@ export default function KBDetailPage() {
   // Document viewer
   const [viewer, setViewer] = useState<{ docId: number; highlight?: string } | null>(null);
 
+  // Contract comparison state
+  const [comparisons, setComparisons] = useState<Record<number, StoredComparison>>({});
+  const [settingBaseline, setSettingBaseline] = useState<number | null>(null);
+  const [expandedComparison, setExpandedComparison] = useState<number | null>(null);
+
   // KB members / sharing
   const [kbMembers, setKbMembers] = useState<KBMember[]>([]);
   const [shareInput, setShareInput] = useState("");
@@ -126,8 +136,43 @@ export default function KBDetailPage() {
     if (res.ok) setKbMembers(await res.json());
   }, [kb]);
 
+  const loadComparisons = useCallback(async (docList: Doc[]) => {
+    const nonBaseline = docList.filter((d) => !d.is_baseline && d.status === "ready");
+    const results = await Promise.all(
+      nonBaseline.map(async (d) => {
+        try {
+          const res = await fetch(`/api/documents/comparison?document_id=${d.id}`);
+          if (!res.ok) return [d.id, null];
+          const data = await res.json();
+          return [d.id, data];
+        } catch { return [d.id, null]; }
+      })
+    );
+    setComparisons(Object.fromEntries(results));
+  }, []);
+
+  const setAsBaseline = async (docId: number) => {
+    setSettingBaseline(docId);
+    try {
+      const res = await fetch("/api/documents/baseline", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ document_id: docId }),
+      });
+      const data = await res.json();
+      if (!res.ok) { alert(data.error ?? "Failed to set baseline"); return; }
+      await loadDocs();
+    } catch (e) { alert(String(e)); }
+    finally { setSettingBaseline(null); }
+  };
+
   useEffect(() => { loadKb(); }, [loadKb]);
-  useEffect(() => { if (kb) { loadDocs(); loadKbMembers(); } }, [kb, loadDocs, loadKbMembers]);
+  useEffect(() => {
+    if (kb) {
+      loadDocs().then(() => {});
+      loadKbMembers();
+    }
+  }, [kb, loadDocs, loadKbMembers]);
 
   const shareKb = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -150,6 +195,9 @@ export default function KBDetailPage() {
     await fetch(`/api/kb/${kb.id}/members?user_id=${userId}`, { method: "DELETE" });
     loadKbMembers();
   };
+
+  // Reload comparisons when docs list changes
+  useEffect(() => { if (docs.length > 0) loadComparisons(docs); }, [docs, loadComparisons]);
 
   // Poll processing docs
   useEffect(() => {
@@ -334,8 +382,8 @@ export default function KBDetailPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">{kb.name}</h1>
-          {kb.description && <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">{kb.description}</p>}
+          <h1 className="text-2xl font-bold text-gray-900">{kb.name}</h1>
+          {kb.description && <p className="text-sm text-gray-500 mt-1">{kb.description}</p>}
         </div>
         <button
           onClick={deleteKb}
@@ -349,11 +397,11 @@ export default function KBDetailPage() {
         {/* Main content */}
         <div className="flex-1 min-w-0">
           {/* Tabs */}
-          <div className="flex bg-gray-100 dark:bg-slate-800 rounded-xl p-1 mb-6">
+          <div className="flex bg-gray-100 rounded-xl p-1 mb-6">
             <button
               onClick={() => setTab("overview")}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                tab === "overview" ? "bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 shadow-sm" : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"
+                tab === "overview" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
               }`}
             >
               <FileText size={14} /> Overview
@@ -361,7 +409,7 @@ export default function KBDetailPage() {
             <button
               onClick={() => setTab("chat")}
               className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                tab === "chat" ? "bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-100 shadow-sm" : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200"
+                tab === "chat" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500 hover:text-gray-700"
               }`}
             >
               <MessageSquare size={14} /> Chat
@@ -372,8 +420,8 @@ export default function KBDetailPage() {
           {tab === "overview" && (
             <div className="space-y-5">
               {/* Quick Actions */}
-              <div className="bg-white dark:bg-slate-900/70 rounded-2xl border border-gray-200 dark:border-slate-800 p-5">
-                <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100 mb-4">Quick Actions</h2>
+              <div className="bg-white rounded-2xl border border-gray-200 p-5">
+                <h2 className="text-sm font-semibold text-gray-900 mb-4">Quick Actions</h2>
                 {uploadError && (
                   <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 mb-4">
                     <AlertCircle size={14} className="flex-shrink-0" />
@@ -404,9 +452,9 @@ export default function KBDetailPage() {
               </div>
 
               {/* Summary */}
-              <div className="bg-white dark:bg-slate-900/70 rounded-2xl border border-gray-200 dark:border-slate-800 p-5">
+              <div className="bg-white rounded-2xl border border-gray-200 p-5">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">Summary</h2>
+                  <h2 className="text-sm font-semibold text-gray-900">Summary</h2>
                   <button
                     onClick={generateSummary}
                     disabled={generatingSummary || readyDocs === 0}
@@ -444,9 +492,17 @@ export default function KBDetailPage() {
               </div>
 
               {/* Documents */}
-              <div className="bg-white dark:bg-slate-900/70 rounded-2xl border border-gray-200 dark:border-slate-800 p-5">
+              <div className="bg-white rounded-2xl border border-gray-200 p-5">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">Documents ({docs.length})</h2>
+                  <div>
+                    <h2 className="text-sm font-semibold text-gray-900">Documents ({docs.length})</h2>
+                    {docs.some((d) => d.is_baseline) && (
+                      <p className="text-xs text-gray-400 mt-0.5 flex items-center gap-1">
+                        <BookMarked size={10} className="text-blue-500" />
+                        Baseline set — new uploads will be auto-compared
+                      </p>
+                    )}
+                  </div>
                   <div className="flex items-center gap-3">
                     {pollingIds.size > 0 && (
                       <span className="flex items-center gap-1 text-xs text-amber-600">
@@ -454,10 +510,7 @@ export default function KBDetailPage() {
                       </span>
                     )}
                     {docs.length < MAX_DOCS && (
-                      <button
-                        onClick={() => fileRef.current?.click()}
-                        className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800"
-                      >
+                      <button onClick={() => fileRef.current?.click()} className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800">
                         <Plus size={12} /> Add
                       </button>
                     )}
@@ -471,35 +524,192 @@ export default function KBDetailPage() {
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {docs.map((doc) => (
-                      <div key={doc.id} className="flex items-center gap-3 py-3 border-b border-gray-50 last:border-0">
-                        <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center flex-shrink-0">
-                          <FileText size={15} className="text-blue-500" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-800 truncate">{doc.filename}</p>
-                          <p className="text-xs text-gray-400">
-                            {formatBytes(doc.size_bytes)} · {timeAgo(doc.created_at)}
-                          </p>
-                        </div>
-                        <StatusBadge status={doc.status} />
-                        <button
-                          onClick={() => setViewer({ docId: doc.id })}
-                          disabled={doc.status !== "ready"}
-                          title="View document"
-                          className="p-1.5 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                        >
-                          <Eye size={13} />
-                        </button>
-                        <button
-                          onClick={() => deleteDoc(doc.id)}
-                          disabled={doc.status === "processing"}
-                          className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                        >
-                          <Trash2 size={13} />
-                        </button>
+                    {/* Baseline hint if none set */}
+                    {!docs.some((d) => d.is_baseline) && docs.some((d) => d.status === "ready") && (
+                      <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-xl px-3 py-2.5 mb-3">
+                        <Info size={13} className="text-blue-400 mt-0.5 shrink-0" />
+                        <p className="text-xs text-blue-700">
+                          <span className="font-semibold">Tip:</span> Click <span className="font-semibold">Set as Baseline</span> on your standard T&C document. Every new upload will then be automatically compared against it.
+                        </p>
                       </div>
-                    ))}
+                    )}
+
+                    {docs.map((doc) => {
+                      const cmp = comparisons[doc.id];
+                      const isExpanded = expandedComparison === doc.id;
+                      const riskColors: Record<string, string> = {
+                        critical: "bg-red-100 text-red-700 border-red-200",
+                        high:     "bg-orange-100 text-orange-700 border-orange-200",
+                        medium:   "bg-amber-100 text-amber-700 border-amber-200",
+                        low:      "bg-emerald-100 text-emerald-700 border-emerald-200",
+                      };
+                      const riskBorder: Record<string, string> = {
+                        critical: "border-l-4 border-l-red-400",
+                        high:     "border-l-4 border-l-orange-400",
+                        medium:   "border-l-4 border-l-amber-400",
+                        low:      "border-l-4 border-l-emerald-400",
+                      };
+
+                      return (
+                        <div key={doc.id} className={`rounded-xl border border-gray-100 overflow-hidden ${cmp ? riskBorder[cmp.risk_level] ?? "" : ""}`}>
+                          {/* Row */}
+                          <div className="flex items-center gap-3 px-3 py-3">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${doc.is_baseline ? "bg-blue-100" : "bg-gray-50"}`}>
+                              {doc.is_baseline
+                                ? <BookMarked size={14} className="text-blue-600" />
+                                : <FileText size={14} className="text-gray-400" />
+                              }
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="text-sm font-medium text-gray-800 truncate">{doc.filename}</p>
+                                {doc.is_baseline && (
+                                  <span className="text-[10px] font-bold bg-blue-600 text-white px-2 py-0.5 rounded-full uppercase tracking-wide">Baseline</span>
+                                )}
+                                {cmp && (
+                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase ${riskColors[cmp.risk_level]}`}>
+                                    {cmp.risk_level} risk
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-xs text-gray-400">{formatBytes(doc.size_bytes)} · {timeAgo(doc.created_at)}</p>
+                            </div>
+                            <StatusBadge status={doc.status} />
+
+                            {/* Set as baseline */}
+                            {doc.status === "ready" && !doc.is_baseline && (
+                              <button
+                                onClick={() => setAsBaseline(doc.id)}
+                                disabled={settingBaseline === doc.id}
+                                title="Set as baseline for comparison"
+                                className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 border border-blue-200 hover:bg-blue-50 px-2 py-1 rounded-lg transition-colors disabled:opacity-50 shrink-0"
+                              >
+                                {settingBaseline === doc.id ? <Loader2 size={10} className="animate-spin" /> : <BookMarked size={10} />}
+                                Baseline
+                              </button>
+                            )}
+
+                            {/* Expand comparison */}
+                            {cmp && (
+                              <button
+                                onClick={() => setExpandedComparison(isExpanded ? null : doc.id)}
+                                className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 px-2 py-1 rounded-lg hover:bg-gray-50 transition-colors shrink-0"
+                              >
+                                <Shield size={10} />
+                                Report
+                                {isExpanded ? <ChevronUp size={10} /> : <ChevronDown size={10} />}
+                              </button>
+                            )}
+
+                            <button onClick={() => setViewer({ docId: doc.id })} disabled={doc.status !== "ready"} title="View"
+                              className="p-1.5 text-gray-300 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+                              <Eye size={13} />
+                            </button>
+                            <button onClick={() => deleteDoc(doc.id)} disabled={doc.status === "processing"}
+                              className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+                              <Trash2 size={13} />
+                            </button>
+                          </div>
+
+                          {/* Inline comparison panel */}
+                          {isExpanded && cmp && (
+                            <div className="border-t border-gray-100 bg-gray-50 px-4 py-4 space-y-4">
+                              {/* Summary */}
+                              <div className={`rounded-xl border p-3 flex items-start gap-3 ${
+                                cmp.risk_level === "critical" ? "bg-red-50 border-red-200" :
+                                cmp.risk_level === "high"     ? "bg-orange-50 border-orange-200" :
+                                cmp.risk_level === "medium"   ? "bg-amber-50 border-amber-200" :
+                                "bg-emerald-50 border-emerald-200"
+                              }`}>
+                                <Shield size={16} className={
+                                  cmp.risk_level === "critical" ? "text-red-500 mt-0.5" :
+                                  cmp.risk_level === "high"     ? "text-orange-500 mt-0.5" :
+                                  cmp.risk_level === "medium"   ? "text-amber-500 mt-0.5" :
+                                  "text-emerald-500 mt-0.5"
+                                } />
+                                <div>
+                                  <p className="text-xs font-semibold text-gray-800 mb-0.5">vs {cmp.baseline_filename}</p>
+                                  <p className="text-xs text-gray-600 leading-relaxed">{cmp.result.summary}</p>
+                                </div>
+                              </div>
+
+                              {/* Stats */}
+                              <div className="grid grid-cols-5 gap-2">
+                                {[
+                                  { label: "Clauses", value: cmp.result.stats.clausesAnalyzed, c: "text-blue-600" },
+                                  { label: "Changed", value: cmp.result.stats.differences,     c: "text-amber-600" },
+                                  { label: "Missing", value: cmp.result.stats.missing,         c: "text-red-600" },
+                                  { label: "Added",   value: cmp.result.stats.added,           c: "text-indigo-600" },
+                                  { label: "Risky",   value: cmp.result.stats.risky,           c: "text-orange-600" },
+                                ].map((s) => (
+                                  <div key={s.label} className="bg-white rounded-lg p-2 text-center border border-gray-100">
+                                    <p className={`text-base font-bold ${s.c}`}>{s.value}</p>
+                                    <p className="text-[10px] text-gray-400">{s.label}</p>
+                                  </div>
+                                ))}
+                              </div>
+
+                              {/* Findings */}
+                              <div className="space-y-2">
+                                {cmp.result.findings
+                                  .sort((a, b) => {
+                                    const o = ["critical","high","medium","low"];
+                                    return o.indexOf(a.severity) - o.indexOf(b.severity);
+                                  })
+                                  .map((f) => {
+                                    const sevBg: Record<string, string> = {
+                                      critical: "bg-red-50 border-red-200",
+                                      high:     "bg-orange-50 border-orange-200",
+                                      medium:   "bg-amber-50 border-amber-200",
+                                      low:      "bg-blue-50 border-blue-200",
+                                    };
+                                    const sevText: Record<string, string> = {
+                                      critical: "text-red-700",
+                                      high:     "text-orange-700",
+                                      medium:   "text-amber-700",
+                                      low:      "text-blue-700",
+                                    };
+                                    const TypeIcon = f.type === "missing" ? XCircle : f.type === "added" ? Info : AlertCircle;
+                                    return (
+                                      <div key={f.id} className={`rounded-lg border px-3 py-2.5 ${sevBg[f.severity]}`}>
+                                        <div className="flex items-center gap-2 mb-1">
+                                          <TypeIcon size={12} className={sevText[f.severity]} />
+                                          <span className="text-xs font-semibold text-gray-800">{f.clause}</span>
+                                          <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded-full ml-auto ${sevBg[f.severity]} ${sevText[f.severity]} border`}>{f.severity}</span>
+                                          <span className="text-[10px] text-gray-500 capitalize">{f.type}</span>
+                                        </div>
+                                        {f.baseline && <p className="text-[11px] text-gray-500 mb-1"><span className="font-medium text-gray-600">Baseline:</span> {f.baseline}</p>}
+                                        {f.incoming && <p className="text-[11px] text-gray-500 mb-1"><span className="font-medium text-gray-600">Incoming:</span> {f.incoming}</p>}
+                                        {!f.incoming && <p className="text-[11px] text-red-600 mb-1 font-medium">✗ Absent from this contract</p>}
+                                        <p className="text-[11px] text-gray-600 mb-1">{f.risk}</p>
+                                        <p className={`text-[11px] font-semibold px-2 py-1 rounded ${
+                                          f.recommendation.toLowerCase().startsWith("accept") ? "bg-emerald-100 text-emerald-800" :
+                                          f.recommendation.toLowerCase().startsWith("reject") ? "bg-red-100 text-red-800" :
+                                          "bg-amber-100 text-amber-800"
+                                        }`}>💡 {f.recommendation}</p>
+                                      </div>
+                                    );
+                                  })}
+                              </div>
+
+                              {/* Acceptable */}
+                              {cmp.result.acceptableClauses.length > 0 && (
+                                <div>
+                                  <p className="text-[10px] font-semibold text-gray-500 uppercase tracking-wide mb-1.5 flex items-center gap-1"><CheckCircle size={10} className="text-emerald-500" /> Matching Clauses</p>
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {cmp.result.acceptableClauses.map((c) => (
+                                      <span key={c} className="text-[10px] bg-emerald-50 border border-emerald-200 text-emerald-700 px-2 py-0.5 rounded-full">✓ {c}</span>
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              <p className="text-[10px] text-gray-400 text-right">Compared {new Date(cmp.updated_at + "Z").toLocaleDateString()}</p>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -510,22 +720,22 @@ export default function KBDetailPage() {
           {tab === "chat" && (
             <div className="flex gap-4" style={{ height: "calc(100vh - 280px)", minHeight: "480px" }}>
               {/* Threads sidebar */}
-              <div className="w-56 shrink-0 bg-white dark:bg-slate-900/70 rounded-2xl border border-gray-200 dark:border-slate-800 flex flex-col overflow-hidden">
-                <div className="px-4 py-3 border-b border-gray-100 dark:border-slate-800 flex items-center justify-between">
-                  <span className="text-xs font-semibold text-gray-700 dark:text-slate-300 flex items-center gap-1.5">
+              <div className="w-56 shrink-0 bg-white rounded-2xl border border-gray-200 flex flex-col overflow-hidden">
+                <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+                  <span className="text-xs font-semibold text-gray-700 flex items-center gap-1.5">
                     <MessagesSquare size={12} /> Conversations
                   </span>
                   <button
                     onClick={newConversation}
                     title="New conversation"
-                    className="p-1 rounded hover:bg-gray-100 dark:hover:bg-slate-800 text-gray-500 dark:text-slate-400 hover:text-cyan-600"
+                    className="p-1 rounded hover:bg-gray-100 text-gray-500 hover:text-cyan-600"
                   >
                     <Plus size={14} />
                   </button>
                 </div>
                 <div className="flex-1 overflow-y-auto py-2">
                   {conversations.length === 0 && (
-                    <p className="text-xs text-gray-400 dark:text-slate-500 px-4 py-3 text-center">
+                    <p className="text-xs text-gray-400 px-4 py-3 text-center">
                       No conversations yet.<br />Ask a question to start.
                     </p>
                   )}
@@ -535,14 +745,14 @@ export default function KBDetailPage() {
                       onClick={() => setActiveConvId(c.id)}
                       className={`group flex items-start gap-2 px-3 py-2 mx-1 rounded-lg cursor-pointer transition-colors ${
                         activeConvId === c.id
-                          ? "bg-cyan-50 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300"
-                          : "hover:bg-gray-50 dark:hover:bg-slate-800 text-gray-700 dark:text-slate-300"
+                          ? "bg-cyan-50 text-cyan-700"
+                          : "hover:bg-gray-50 text-gray-700"
                       }`}
                     >
                       <MessageSquare size={11} className="mt-1 shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium truncate">{c.title}</p>
-                        <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-0.5">
+                        <p className="text-[10px] text-gray-400 mt-0.5">
                           {c.msg_count} msg · {timeAgo(c.updated_at)}
                         </p>
                       </div>
@@ -559,20 +769,20 @@ export default function KBDetailPage() {
               </div>
 
               {/* Chat panel */}
-              <div className="flex-1 min-w-0 bg-white dark:bg-slate-900/70 rounded-2xl border border-gray-200 dark:border-slate-800 flex flex-col">
+              <div className="flex-1 min-w-0 bg-white rounded-2xl border border-gray-200 flex flex-col">
               {/* Chat header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-slate-800">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-sm font-semibold text-gray-900 dark:text-slate-100">
+                  <h2 className="text-sm font-semibold text-gray-900">
                     {activeConvId ? conversations.find((c) => c.id === activeConvId)?.title ?? "Chat Session" : "New conversation"}
                   </h2>
-                  <span className="text-xs text-gray-400 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
+                  <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
                     {msgCount} message{msgCount !== 1 ? "s" : ""}
                   </span>
                 </div>
                 <button
                   onClick={newConversation}
-                  className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 border border-gray-200 dark:border-slate-700 px-3 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                  className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   <Plus size={11} /> New
                 </button>
@@ -606,9 +816,9 @@ export default function KBDetailPage() {
 
                     <div className={`max-w-[75%] space-y-2 ${msg.role === "user" ? "items-end flex flex-col" : ""}`}>
                       <div className={`px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
-                        msg.error ? "bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800/40 text-red-700 dark:text-red-300"
-                        : msg.role === "user" ? "bg-blue-600 dark:bg-cyan-600 text-white rounded-tr-sm"
-                        : "bg-gray-50 dark:bg-slate-800 border border-gray-100 dark:border-slate-700 text-gray-800 dark:text-slate-200 rounded-tl-sm"
+                        msg.error ? "bg-red-50 border border-red-200 text-red-700"
+                        : msg.role === "user" ? "bg-blue-600 text-white rounded-tr-sm"
+                        : "bg-gray-50 border border-gray-100 text-gray-800 rounded-tl-sm"
                       }`}>
                         {msg.content || <span className="flex items-center gap-2 text-gray-400"><Loader2 size={12} className="animate-spin" />Thinking…</span>}
                       </div>
@@ -621,16 +831,16 @@ export default function KBDetailPage() {
                               <div
                                 key={i}
                                 onClick={() => matchedDoc && setViewer({ docId: matchedDoc.id, highlight: s.excerpt })}
-                                className={`flex items-start gap-2 bg-blue-50 dark:bg-blue-950/30 border border-blue-100 dark:border-blue-800/40 rounded-lg px-3 py-2 ${matchedDoc ? "cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors" : ""}`}
+                                className={`flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2 ${matchedDoc ? "cursor-pointer hover:bg-blue-100 transition-colors" : ""}`}
                                 title={matchedDoc ? "Click to view in document" : undefined}
                               >
                                 <FileText size={11} className="text-blue-400 mt-0.5 flex-shrink-0" />
                                 <div className="min-w-0 flex-1">
-                                  <p className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                                  <p className="text-xs font-medium text-blue-700">
                                     {s.file} <span className="text-blue-400 font-normal">{s.score}% match</span>
                                     {matchedDoc && <span className="ml-1 text-blue-400 font-normal">· view ↗</span>}
                                   </p>
-                                  <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 line-clamp-2">{s.excerpt}</p>
+                                  <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{s.excerpt}</p>
                                 </div>
                               </div>
                             );
@@ -659,8 +869,8 @@ export default function KBDetailPage() {
               </div>
 
               {/* Input */}
-              <div className="px-5 py-4 border-t border-gray-100 dark:border-slate-800">
-                <div className="flex items-center gap-3 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-3 focus-within:border-blue-300 dark:focus-within:border-cyan-500 focus-within:ring-2 focus-within:ring-blue-100 dark:focus-within:ring-cyan-900/40 transition-all">
+              <div className="px-5 py-4 border-t border-gray-100">
+                <div className="flex items-center gap-3 border border-gray-200 rounded-xl px-4 py-3 focus-within:border-blue-300 focus-within:ring-2 focus-within:ring-blue-100 transition-all">
                   <input
                     type="text"
                     value={input}
@@ -668,12 +878,12 @@ export default function KBDetailPage() {
                     onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
                     placeholder="Ask a question about your documents..."
                     disabled={chatLoading}
-                    className="flex-1 text-sm text-gray-800 dark:text-slate-200 placeholder-gray-400 dark:placeholder-slate-500 outline-none bg-transparent disabled:cursor-not-allowed"
+                    className="flex-1 text-sm text-gray-800 placeholder-gray-400 outline-none bg-transparent disabled:cursor-not-allowed"
                   />
                   <button
                     onClick={send}
                     disabled={!input.trim() || chatLoading}
-                    className="w-8 h-8 rounded-lg bg-gray-800 dark:bg-cyan-600 hover:bg-gray-700 dark:hover:bg-cyan-500 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+                    className="w-8 h-8 rounded-lg bg-gray-800 hover:bg-gray-700 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
                   >
                     {chatLoading ? <Loader2 size={13} className="text-white animate-spin" /> : <Send size={13} className="text-white" />}
                   </button>
@@ -686,12 +896,12 @@ export default function KBDetailPage() {
 
         {/* Sidebar info panel */}
         <div className="w-56 shrink-0 space-y-4">
-          <div className="bg-white dark:bg-slate-900/70 rounded-2xl border border-gray-200 dark:border-slate-800 p-5">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100 mb-4">Information</h3>
+          <div className="bg-white rounded-2xl border border-gray-200 p-5">
+            <h3 className="text-sm font-semibold text-gray-900 mb-4">Information</h3>
             <div className="space-y-3">
               <div>
                 <p className="text-xs text-gray-400">Created</p>
-                <p className="text-xs font-medium text-gray-700 dark:text-slate-300 mt-0.5">{timeAgo(kb.created_at)}</p>
+                <p className="text-xs font-medium text-gray-700 mt-0.5">{timeAgo(kb.created_at)}</p>
               </div>
               <div>
                 <p className="text-xs text-gray-400">Documents</p>
@@ -705,8 +915,8 @@ export default function KBDetailPage() {
           </div>
 
           {/* Share / Members */}
-          <div className="bg-white dark:bg-slate-900/70 rounded-2xl border border-gray-200 dark:border-slate-800 p-5">
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-slate-100 mb-3 flex items-center gap-2">
+          <div className="bg-white rounded-2xl border border-gray-200 p-5">
+            <h3 className="text-sm font-semibold text-gray-900 mb-3 flex items-center gap-2">
               <UserPlus size={13} /> Share
             </h3>
 
@@ -717,7 +927,7 @@ export default function KBDetailPage() {
                   <div key={m.id} className="flex items-center gap-2">
                     <UserAvatar username={m.username} avatar_url={m.avatar_url} size={24} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-gray-700 dark:text-slate-300 truncate">{m.username}</p>
+                      <p className="text-xs font-medium text-gray-700 truncate">{m.username}</p>
                       <p className="text-[10px] text-gray-400 capitalize">{m.role}</p>
                     </div>
                     <button
@@ -739,13 +949,13 @@ export default function KBDetailPage() {
                 onChange={(e) => setShareInput(e.target.value)}
                 placeholder="Username or email"
                 required
-                className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-cyan-400 bg-transparent text-gray-700 dark:text-slate-200"
+                className="w-full border border-gray-200 rounded-lg px-3 py-1.5 text-xs outline-none focus:border-cyan-400 bg-transparent text-gray-700"
               />
               <div className="flex gap-2">
                 <select
                   value={shareRole}
                   onChange={(e) => setShareRole(e.target.value)}
-                  className="flex-1 border border-gray-200 dark:border-slate-700 rounded-lg px-2 py-1.5 text-xs outline-none bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-200"
+                  className="flex-1 border border-gray-200 rounded-lg px-2 py-1.5 text-xs outline-none bg-white text-gray-700"
                 >
                   <option value="viewer">Viewer</option>
                   <option value="editor">Editor</option>

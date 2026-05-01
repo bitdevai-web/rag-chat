@@ -36,9 +36,9 @@ function timeAgo(dateStr: string) {
 }
 
 const roleColors: Record<string, string> = {
-  owner: "bg-amber-100 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300",
-  admin: "bg-violet-100 dark:bg-violet-950/40 text-violet-700 dark:text-violet-300",
-  member:"bg-gray-100 dark:bg-slate-800 text-gray-600 dark:text-slate-400",
+  owner: "bg-amber-100 text-amber-700",
+  admin: "bg-violet-100 text-violet-700",
+  member:"bg-gray-100 text-gray-600",
 };
 
 export default function TeamPage() {
@@ -124,12 +124,12 @@ export default function TeamPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Teams</h1>
-          <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Create teams and manage members</p>
+          <h1 className="text-2xl font-bold text-gray-900">Teams</h1>
+          <p className="text-sm text-gray-500 mt-1">Create teams and manage members</p>
         </div>
         <button
           onClick={() => setShowCreate(true)}
-          className="flex items-center gap-1.5 bg-gray-900 dark:bg-cyan-600 hover:bg-gray-700 dark:hover:bg-cyan-500 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors"
+          className="flex items-center gap-1.5 bg-gray-900 hover:bg-gray-700 text-white text-sm font-medium px-4 py-2 rounded-xl transition-colors"
         >
           <Plus size={14} /> New Team
         </button>
@@ -153,15 +153,15 @@ export default function TeamPage() {
                 onClick={() => loadDetail(t.id)}
                 className={`flex items-start gap-3 p-4 rounded-2xl border cursor-pointer transition-colors ${
                   activeTeam?.id === t.id
-                    ? "bg-cyan-50 dark:bg-cyan-900/20 border-cyan-200 dark:border-cyan-800/40"
-                    : "bg-white dark:bg-slate-900/70 border-gray-200 dark:border-slate-800 hover:border-cyan-200 dark:hover:border-slate-700"
+                    ? "bg-cyan-50 border-cyan-200"
+                    : "bg-white border-gray-200 hover:border-cyan-200"
                 }`}
               >
                 <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center flex-shrink-0 text-white font-bold text-sm">
                   {t.name.slice(0, 1).toUpperCase()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-800 dark:text-slate-200 truncate">{t.name}</p>
+                  <p className="text-sm font-semibold text-gray-800 truncate">{t.name}</p>
                   <p className="text-xs text-gray-400 mt-0.5">{t.member_count} member{t.member_count !== 1 ? "s" : ""} · {timeAgo(t.created_at)}</p>
                   <span className={`inline-block text-[10px] px-1.5 py-0.5 rounded-full mt-1 ${roleColors[t.my_role] ?? roleColors.member}`}>
                     {t.my_role}
@@ -173,27 +173,27 @@ export default function TeamPage() {
 
           {/* Create Team form */}
           {showCreate && (
-            <form onSubmit={createTeam} className="bg-white dark:bg-slate-900/70 rounded-2xl border border-cyan-200 dark:border-cyan-800/40 p-4 space-y-3">
-              <p className="text-sm font-semibold text-gray-900 dark:text-slate-100">New Team</p>
+            <form onSubmit={createTeam} className="bg-white rounded-2xl border border-cyan-200 p-4 space-y-3">
+              <p className="text-sm font-semibold text-gray-900">New Team</p>
               <input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
                 placeholder="Team name"
                 required
-                className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-400 bg-transparent text-gray-700 dark:text-slate-200"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-400 bg-transparent text-gray-700"
               />
               <input
                 value={newDesc}
                 onChange={(e) => setNewDesc(e.target.value)}
                 placeholder="Description (optional)"
-                className="w-full border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-400 bg-transparent text-gray-700 dark:text-slate-200"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-400 bg-transparent text-gray-700"
               />
               {createError && <p className="text-xs text-red-500 flex items-center gap-1"><AlertCircle size={11} />{createError}</p>}
               <div className="flex gap-2">
                 <button type="submit" disabled={creating} className="flex-1 flex items-center justify-center gap-1 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-medium py-2 rounded-lg transition-colors disabled:opacity-50">
                   {creating ? <Loader2 size={12} className="animate-spin" /> : <Plus size={12} />} Create
                 </button>
-                <button type="button" onClick={() => setShowCreate(false)} className="px-3 py-2 text-xs text-gray-500 border border-gray-200 dark:border-slate-700 rounded-lg hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
+                <button type="button" onClick={() => setShowCreate(false)} className="px-3 py-2 text-xs text-gray-500 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                   <X size={12} />
                 </button>
               </div>
@@ -204,7 +204,7 @@ export default function TeamPage() {
         {/* Team detail */}
         <div className="flex-1 min-w-0">
           {!activeTeam && !detailLoading ? (
-            <div className="bg-white dark:bg-slate-900/70 rounded-2xl border border-gray-200 dark:border-slate-800 flex items-center justify-center h-64">
+            <div className="bg-white rounded-2xl border border-gray-200 flex items-center justify-center h-64">
               <div className="text-center">
                 <Settings2 size={28} className="text-gray-200 mx-auto mb-2" />
                 <p className="text-sm text-gray-400">Select a team to manage members</p>
@@ -213,17 +213,17 @@ export default function TeamPage() {
           ) : detailLoading ? (
             <div className="flex justify-center py-12"><Loader2 size={22} className="animate-spin text-gray-300" /></div>
           ) : activeTeam && (
-            <div className="bg-white dark:bg-slate-900/70 rounded-2xl border border-gray-200 dark:border-slate-800">
+            <div className="bg-white rounded-2xl border border-gray-200">
               {/* Header */}
-              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-slate-800">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
                 <div>
-                  <h2 className="text-base font-bold text-gray-900 dark:text-slate-100">{activeTeam.name}</h2>
+                  <h2 className="text-base font-bold text-gray-900">{activeTeam.name}</h2>
                   {activeTeam.description && <p className="text-xs text-gray-400 mt-0.5">{activeTeam.description}</p>}
                 </div>
                 {(activeTeam.my_role === "owner" || activeTeam.my_role === "admin") && (
                   <button
                     onClick={() => deleteTeam(activeTeam.id)}
-                    className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 border border-red-200 dark:border-red-800/40 px-3 py-1.5 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors"
+                    className="flex items-center gap-1.5 text-xs text-red-500 hover:text-red-700 border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors"
                   >
                     <Trash2 size={11} /> Delete Team
                   </button>
@@ -232,18 +232,18 @@ export default function TeamPage() {
 
               {/* Invite form */}
               {(activeTeam.my_role === "owner" || activeTeam.my_role === "admin") && (
-                <form onSubmit={invite} className="flex items-center gap-3 px-5 py-3 border-b border-gray-100 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-800/20">
+                <form onSubmit={invite} className="flex items-center gap-3 px-5 py-3 border-b border-gray-100 bg-gray-50/50">
                   <input
                     value={inviteInput}
                     onChange={(e) => setInviteInput(e.target.value)}
                     placeholder="Username or email"
                     required
-                    className="flex-1 border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-400 bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-200"
+                    className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-cyan-400 bg-white text-gray-700"
                   />
                   <select
                     value={inviteRole}
                     onChange={(e) => setInviteRole(e.target.value)}
-                    className="border border-gray-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm outline-none bg-white dark:bg-slate-900 text-gray-700 dark:text-slate-200"
+                    className="border border-gray-200 rounded-lg px-3 py-2 text-sm outline-none bg-white text-gray-700"
                   >
                     <option value="member">Member</option>
                     <option value="admin">Admin</option>
@@ -260,12 +260,12 @@ export default function TeamPage() {
               )}
 
               {/* Members list */}
-              <div className="divide-y divide-gray-50 dark:divide-slate-800">
+              <div className="divide-y divide-gray-50">
                 {activeTeam.members.map((m) => (
                   <div key={m.id} className="flex items-center gap-3 px-5 py-3.5">
                     <UserAvatar username={m.username} avatar_url={m.avatar_url} size={34} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-800 dark:text-slate-200">{m.username}</p>
+                      <p className="text-sm font-medium text-gray-800">{m.username}</p>
                       <p className="text-xs text-gray-400 truncate">{m.email}</p>
                     </div>
                     <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${roleColors[m.role] ?? roleColors.member}`}>
@@ -275,7 +275,7 @@ export default function TeamPage() {
                     {(activeTeam.my_role === "owner" || activeTeam.my_role === "admin") && m.role !== "owner" && (
                       <button
                         onClick={() => removeMember(m.id)}
-                        className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors"
+                        className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                         title="Remove member"
                       >
                         <UserMinus size={13} />

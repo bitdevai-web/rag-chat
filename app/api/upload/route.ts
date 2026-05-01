@@ -6,6 +6,7 @@ import { embedBatch } from "@/lib/embeddings";
 import { addChunks } from "@/lib/vectordb";
 import { indexChunks } from "@/lib/fts";
 import { getSetting } from "@/lib/settings";
+import { runContractComparison, saveComparison } from "@/lib/contractCompare";
 
 export const dynamic = "force-dynamic";
 
@@ -115,6 +116,38 @@ async function processDocument(
 
     // 5. Mark ready
     db.prepare("UPDATE documents SET status = 'ready' WHERE id = ?").run(docId);
+
+    // 6. Auto-compare against baseline if one exists in this category
+    try {
+      const baseline = db.prepare(`
+        SELECT id, filename FROM documents
+        WHERE category_id = (SELECT category_id FROM documents WHERE id = ?)
+          AND is_baseline = 1
+          AND id != ?
+          AND status = 'ready'
+        LIMIT 1
+      `).get(docId, docId) as { id: number; filename: string } | undefined;
+
+      if (baseline) {
+        // Retrieve baseline text from its stored chunks
+        const baselineChunks = db.prepare(`
+          SELECT content FROM chunks_fts WHERE document_id = ? ORDER BY chunk_index ASC
+        `).all(baseline.id) as { content: string }[];
+        const baselineText = baselineChunks.map((c) => c.content).join("\n\n");
+
+        if (baselineText.trim()) {
+          const result = await runContractComparison(
+            baselineText, baseline.filename,
+            text, filename
+          );
+          saveComparison(docId, baseline.id, result);
+          console.log(`[upload] Auto-comparison done for doc ${docId}: ${result.riskLevel}`);
+        }
+      }
+    } catch (compareErr) {
+      // Don't fail the upload if comparison fails
+      console.warn("[upload] Auto-comparison failed:", compareErr);
+    }
   } catch (e) {
     console.error("processDocument error:", e);
     db.prepare("UPDATE documents SET status = 'error' WHERE id = ?").run(docId);

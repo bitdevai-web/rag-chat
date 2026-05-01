@@ -1,0 +1,115 @@
+SOFTWARE DEVELOPMENT & CONSULTING SERVICES AGREEMENT
+Vendor: NexGen Tech Ventures Ltd ("NexGen" / "Service Provider")
+Client: Brainium Information Technologies Pvt Ltd ("Client")
+Agreement No: NGT-BIT-2025-0089 | Dated: 20 March 2025
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+IMPORTANT: THIS AGREEMENT CONTAINS SIGNIFICANT DEVIATIONS FROM
+STANDARD INDUSTRY TERMS. REVIEW CAREFULLY BEFORE SIGNING.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. DEFINITIONS
+
+1.1 "Agreement" means this document and any attached project schedules.
+1.2 "Services" means software engineering, AI/ML development, and technology consulting services.
+1.3 "Confidential Information" means information explicitly marked "CONFIDENTIAL" in writing at the time of disclosure.
+1.4 "NexGen IP" means all intellectual property, including pre-existing and newly developed technology, tools, methodologies, platforms, and any work product created during performance of Services.
+1.5 "Client Materials" means documents, data, and specifications provided by the Client.
+
+
+2. PAYMENT TERMS
+
+2.1 NexGen shall issue invoices upon project milestone completion as per the attached project schedule.
+2.2 The Client shall pay all invoices within NET 60 DAYS of the invoice date. Payment is conditional upon NexGen's finance team formally approving the invoice as complete and accurate, which approval NexGen shall not unreasonably withhold.
+2.3 The Client waives the right to dispute any invoice more than 5 business days after receipt. Undisputed invoices shall be deemed accepted in full.
+2.4 Overdue payments shall accrue interest at 3% per month compounded monthly.
+2.5 All fees are in USD. The Client bears all currency conversion costs and bank charges.
+2.6 NexGen may revise its rates at any time with 14 days' written notice. If the Client does not accept revised rates, NexGen may terminate the relevant SOW with no further obligation.
+
+
+3. INTELLECTUAL PROPERTY & OWNERSHIP
+
+3.1 ALL INTELLECTUAL PROPERTY RIGHTS IN ANY WORK, DELIVERABLE, CODE, DOCUMENTATION, DESIGN, METHODOLOGY, OR TOOL — WHETHER PRE-EXISTING OR CREATED DURING THE PERFORMANCE OF SERVICES — SHALL REMAIN THE EXCLUSIVE PROPERTY OF NEXGEN TECH VENTURES LTD.
+3.2 The Client is granted a NON-EXCLUSIVE, NON-TRANSFERABLE, REVOCABLE LICENCE to use the deliverables solely for its internal business operations during the term of this Agreement. This licence is automatically revoked upon any breach or termination of this Agreement.
+3.3 The Client shall not reverse-engineer, decompile, adapt, or create derivative works from any deliverable without NexGen's prior written consent.
+3.4 NexGen may use all work created under this Agreement in its portfolio, product roadmap, and for training AI/ML models, without restriction.
+3.5 Upon full payment of all outstanding invoices, NexGen may, at its sole discretion, grant the Client a perpetual licence to the specific deliverable, subject to a separate licensing fee to be agreed.
+
+
+4. CONFIDENTIALITY
+
+4.1 The Client agrees to keep all NexGen's methods, pricing, technologies, and deliverables strictly confidential.
+4.2 NexGen's obligations of confidentiality are limited to information explicitly marked "CONFIDENTIAL" in writing. Verbal disclosures are not covered unless confirmed in writing within 48 hours.
+4.3 Confidentiality obligations shall expire 1 YEAR after termination of this Agreement.
+4.4 NexGen may disclose Client information to its subcontractors, affiliates, and technology partners without prior notice, provided they maintain reasonable confidentiality.
+4.5 The Client consents to NexGen referencing the Client's name, logo, and project details in sales materials, investor presentations, and press releases without requiring further approval.
+
+
+5. LIABILITY
+
+5.1 TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW, NEXGEN SHALL NOT BE LIABLE FOR ANY LOSS OR DAMAGE OF ANY KIND, WHETHER DIRECT, INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, PUNITIVE, OR OTHERWISE, ARISING OUT OF OR IN CONNECTION WITH THIS AGREEMENT.
+5.2 There is no cap on the Client's liability to NexGen. The Client shall be liable for all losses, costs, and damages suffered by NexGen as a result of any breach by the Client, including loss of anticipated profits.
+5.3 NexGen's maximum aggregate liability for any claim, if liability is found, shall not exceed INR 50,000 (fifty thousand rupees only), regardless of the nature or amount of the claim or fees paid.
+5.4 The exclusions in clause 5.1 apply even if NexGen has been advised of the possibility of such damage.
+
+
+6. INDEMNIFICATION
+
+6.1 The Client shall indemnify, defend, and hold NexGen harmless from any and all claims, damages, losses, liabilities, costs, and expenses (including legal fees) arising from: (a) the Client's use of the deliverables; (b) the Client's business operations; (c) any claim that Client Materials infringe third-party rights; (d) any breach of this Agreement by the Client.
+6.2 NexGen provides no IP indemnification. The Client acknowledges that NexGen makes no representation that deliverables are free from third-party IP claims, and the Client assumes all risk in this regard.
+
+
+7. TERM & TERMINATION
+
+7.1 This Agreement commences on the date of execution and continues for a MINIMUM COMMITTED TERM OF 36 MONTHS. Neither party may terminate for convenience during this minimum term.
+7.2 After the minimum term, termination for convenience requires 90 DAYS' WRITTEN NOTICE from the Client.
+7.3 NexGen may terminate this Agreement at any time with 30 days' notice if it determines, in its sole discretion, that continuation of the engagement is not commercially viable.
+7.4 Upon termination for any reason: (a) All outstanding invoices become immediately due and payable; (b) The Client shall pay a BREAK FEE equal to 50% of the total remaining contract value; (c) The Client's licence to use any deliverable is immediately revoked; (d) NexGen may retain all Work Product.
+7.5 The Client shall have no right to terminate for breach unless the breach remains uncured for 45 days after written notice, during which time the Client must continue to pay all invoices as they fall due.
+
+
+8. WARRANTIES
+
+8.1 NexGen warrants that it has authority to enter this Agreement.
+8.2 ALL SERVICES AND DELIVERABLES ARE PROVIDED "AS IS" AND "AS AVAILABLE". NEXGEN MAKES NO WARRANTY, EXPRESS OR IMPLIED, INCLUDING WARRANTIES OF MERCHANTABILITY, FITNESS FOR PURPOSE, ACCURACY, COMPLETENESS, OR NON-INFRINGEMENT.
+8.3 NexGen does not warrant that deliverables will meet the Client's requirements or operate error-free.
+8.4 The Client's sole remedy for any defective deliverable is to request NexGen to attempt a correction at NexGen's discretion, with no obligation to complete such correction within any specific timeframe.
+
+
+9. DATA PROTECTION
+
+9.1 Both parties shall comply with applicable laws.
+9.2 The Client is solely responsible for ensuring that any personal data shared with NexGen may lawfully be shared. NexGen accepts no liability for unlawful transfers of personal data by the Client.
+9.3 In the event of a data breach affecting Client data, NexGen will endeavour to notify the Client WITHIN 7 BUSINESS DAYS of becoming aware.
+9.4 NexGen may process and retain Client data indefinitely for its own business analytics, product improvement, and AI training purposes, unless the Client specifically objects in writing.
+9.5 The Client grants NexGen a perpetual, royalty-free licence to use anonymised Client data for benchmarking and model training.
+
+
+10. GOVERNING LAW & DISPUTE RESOLUTION
+
+10.1 This Agreement is governed by the laws of Singapore.
+10.2 The exclusive jurisdiction for all disputes shall be the courts of Singapore.
+10.3 The Client irrevocably waives any objection to the jurisdiction of Singapore courts, including on the basis of inconvenient forum.
+10.4 NexGen may seek injunctive or other equitable relief in any court of competent jurisdiction without prior notice to the Client.
+10.5 The Client shall bear NexGen's legal costs in any dispute, regardless of outcome, unless the Client is wholly successful on all claims.
+
+
+11. GENERAL
+
+11.1 Force Majeure: NexGen is not liable for any delay or failure due to any cause beyond its reasonable control, including market conditions, staff unavailability, or supply chain issues. There is no termination right for the Client during a force majeure period. All invoices continue to accrue and remain payable.
+11.2 Assignment: NexGen may freely assign or novate this Agreement to any third party, including a competitor of the Client, without consent. The Client may not assign without NexGen's prior written consent.
+11.3 Entire Agreement: This Agreement supersedes all prior discussions. Any prior representations not reflected here are of no effect.
+11.4 Amendments: NexGen may amend the terms of this Agreement by providing 14 days' written notice to the Client. Continued use of Services after the notice period constitutes acceptance.
+11.5 Waiver: NexGen's failure to enforce any right shall not constitute a waiver. The Client's failure to object to any conduct constitutes acceptance.
+11.6 Severability: Any invalid provision shall be enforced to the maximum extent possible.
+11.7 Notices: Notices may be sent by email to the addresses specified in the project schedule. Notices are effective upon sending.
+11.8 Subcontracting: NexGen may subcontract any or all Services to any third party without the Client's consent.
+11.9 Anti-Bribery: Both parties confirm compliance with applicable laws.
+11.10 Audit Rights: NexGen shall have the right to audit the Client's use of deliverables at any time with 24 hours' notice. The Client shall have no right to audit NexGen.
+11.11 Non-Solicitation: The Client agrees not to solicit or hire any NexGen employee or contractor for a period of 2 years after termination, with a penalty of INR 25 lakh per breach.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SIGNED ON BEHALF OF NEXGEN TECH VENTURES LTD
+Name: _________________________ Designation: ______________
+Signature: _____________________ Date: ___________________
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
