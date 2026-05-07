@@ -97,21 +97,13 @@ export default function LoginPage() {
             <p className="text-slate-500 text-sm mt-1">Sign in to your CogniBase account</p>
           </div>
 
-          {/* Default credentials hint */}
-          <div className="flex items-center gap-2 rounded-xl px-4 py-3 mb-6 text-xs border"
-            style={{ background: "rgba(6,182,212,0.05)", borderColor: "rgba(6,182,212,0.2)", color: "#0e7490" }}
-          >
-            <AlertCircle size={13} className="flex-shrink-0" />
-            Default: <span className="font-mono font-semibold">admin</span> / <span className="font-mono font-semibold">admin123</span>
-          </div>
-
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-slate-700">Username</label>
               <input
                 type="text" value={username}
                 onChange={e => { setUsername(e.target.value); setError(""); }}
-                placeholder="admin" autoComplete="username" required
+                placeholder="Enter username" autoComplete="username" required
                 className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder-slate-300 outline-none transition-all bg-slate-50"
                 style={{ ["--tw-ring-color" as string]: "rgba(6,182,212,0.3)" }}
                 onFocus={e => { e.target.style.borderColor = "#06b6d4"; e.target.style.boxShadow = "0 0 0 3px rgba(6,182,212,0.15)"; }}
