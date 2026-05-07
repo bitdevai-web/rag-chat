@@ -230,6 +230,36 @@ function init(db: Database.Database) {
   try { db.exec("CREATE INDEX IF NOT EXISTS idx_comments_conv  ON comments(conversation_id)"); } catch {}
   try { db.exec("CREATE INDEX IF NOT EXISTS idx_team_members   ON team_members(user_id)"); } catch {}
 
+  // Phase 4: Per-user KB isolation — recreate categories with per-user unique name
+  try {
+    const hasOwnerUnique = db.prepare(
+      "SELECT name FROM sqlite_master WHERE type='index' AND name='idx_cat_owner_name'"
+    ).get();
+    if (!hasOwnerUnique) {
+      db.exec(`
+        PRAGMA foreign_keys = OFF;
+        CREATE TABLE IF NOT EXISTS categories_new (
+          id          INTEGER PRIMARY KEY AUTOINCREMENT,
+          name        TEXT    NOT NULL,
+          description TEXT    DEFAULT '',
+          summary     TEXT    DEFAULT NULL,
+          created_at  TEXT    DEFAULT (datetime('now')),
+          owner_id    INTEGER DEFAULT NULL,
+          UNIQUE(name, owner_id)
+        );
+        INSERT OR IGNORE INTO categories_new (id, name, description, summary, created_at, owner_id)
+          SELECT id, name, description, summary, created_at, owner_id FROM categories;
+        DROP TABLE categories;
+        ALTER TABLE categories_new RENAME TO categories;
+        CREATE INDEX IF NOT EXISTS idx_cat_owner_name ON categories(owner_id, name);
+        PRAGMA foreign_keys = ON;
+      `);
+      // Set owner_id=1 for any categories that have no owner
+      db.prepare("UPDATE categories SET owner_id = 1 WHERE owner_id IS NULL").run();
+      db.prepare("UPDATE conversations SET owner_id = 1 WHERE owner_id IS NULL").run();
+    }
+  } catch(e) { console.warn('categories migration:', e); }
+
   // ── Contract Comparison (Phase 3) ────────────────────────────────────────
   // is_baseline flag on documents
   try { db.exec("ALTER TABLE documents ADD COLUMN is_baseline INTEGER DEFAULT 0"); } catch {}

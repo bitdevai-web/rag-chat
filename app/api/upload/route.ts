@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth";
 import { extractText } from "@/lib/parsers";
 import { splitIntoChunks } from "@/lib/chunker";
 import { embedBatch } from "@/lib/embeddings";
@@ -14,26 +15,25 @@ const MAX_DOCS_PER_CATEGORY = 3;
 
 export async function POST(req: NextRequest) {
   try {
+    const user = getSessionUser(req);
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
-    const category = formData.get("category") as string | null;
+    const categoryIdParam = formData.get("category_id") as string | null;
 
     if (!file) return NextResponse.json({ error: "No file" }, { status: 400 });
-    if (!category)
-      return NextResponse.json({ error: "No category" }, { status: 400 });
+    if (!categoryIdParam)
+      return NextResponse.json({ error: "No category_id" }, { status: 400 });
 
+    const categoryId = parseInt(categoryIdParam);
     const db = getDb();
 
-    // Resolve or create category
-    let cat = db
-      .prepare("SELECT id FROM categories WHERE name = ?")
-      .get(category) as { id: number } | undefined;
-    if (!cat) {
-      db.prepare("INSERT OR IGNORE INTO categories (name) VALUES (?)").run(category);
-      cat = db
-        .prepare("SELECT id FROM categories WHERE name = ?")
-        .get(category) as { id: number };
-    }
+    // Verify ownership of the category
+    const cat = db
+      .prepare("SELECT id FROM categories WHERE id = ? AND owner_id = ?")
+      .get(categoryId, user.id) as { id: number } | undefined;
+    if (!cat) return NextResponse.json({ error: "Category not found" }, { status: 404 });
 
     // Enforce doc limit
     const existing = db
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
       buffer,
       file.type,
       file.name,
-      category,
+      cat.id,
       getSetting("chunk_size"),
       getSetting("chunk_overlap")
     ).catch(console.error);
@@ -78,11 +78,12 @@ async function processDocument(
   buffer: Buffer,
   mimeType: string,
   filename: string,
-  category: string,
+  categoryId: number,
   chunkSizeSetting: string | null,
   overlapSetting: string | null
 ) {
   const db = getDb();
+  const categoryKey = String(categoryId);
   try {
     // 1. Extract text (auto-OCR for image-based PDFs)
     const ext = filename.split(".").pop()?.toLowerCase() ?? "";
@@ -111,19 +112,19 @@ async function processDocument(
     // 3. Embed (local model — no API key needed)
     const embeddings = await embedBatch(chunks);
 
-    // 4. Store in LanceDB
+    // 4. Store in LanceDB — use category ID string as the isolation key
     const records = chunks.map((content, i) => ({
       vector: embeddings[i],
       content,
       filename,
-      category,
+      category: categoryKey,
       document_id: docId,
       chunk_index: i,
     }));
     await addChunks(records);
 
     // 4b. Index chunks for BM25 keyword search (hybrid retrieval)
-    indexChunks(chunks, { filename, category, document_id: docId });
+    indexChunks(chunks, { filename, category: categoryKey, document_id: docId });
 
     // 5. Mark ready
     db.prepare("UPDATE documents SET status = 'ready' WHERE id = ?").run(docId);

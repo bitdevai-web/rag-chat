@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth";
 import { deleteChunksByDocId } from "@/lib/vectordb";
 
 export const dynamic = "force-dynamic";
@@ -8,14 +9,17 @@ type Category = { id: number; name: string; description: string; summary: string
 type Doc = { id: number };
 
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const user = getSessionUser(req);
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const db = getDb();
     const cat = db
-      .prepare("SELECT id, name, description, summary, created_at FROM categories WHERE id = ?")
-      .get(parseInt(params.id)) as Category | undefined;
+      .prepare("SELECT id, name, description, summary, created_at FROM categories WHERE id = ? AND owner_id = ?")
+      .get(parseInt(params.id), user.id) as Category | undefined;
 
     if (!cat) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
@@ -30,12 +34,19 @@ export async function GET(
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    const user = getSessionUser(req);
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const db = getDb();
     const catId = parseInt(params.id);
+
+    // Verify ownership
+    const cat = db.prepare("SELECT id FROM categories WHERE id = ? AND owner_id = ?").get(catId, user.id);
+    if (!cat) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
     const docs = db
       .prepare("SELECT id FROM documents WHERE category_id = ?")
@@ -58,13 +69,22 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   try {
+    const user = getSessionUser(req);
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const db = getDb();
+    const catId = parseInt(params.id);
+
+    // Verify ownership
+    const cat = db.prepare("SELECT id FROM categories WHERE id = ? AND owner_id = ?").get(catId, user.id);
+    if (!cat) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
     const body = await req.json();
     if (body.summary !== undefined) {
-      db.prepare("UPDATE categories SET summary = ? WHERE id = ?").run(body.summary, parseInt(params.id));
+      db.prepare("UPDATE categories SET summary = ? WHERE id = ?").run(body.summary, catId);
     }
     if (body.description !== undefined) {
-      db.prepare("UPDATE categories SET description = ? WHERE id = ?").run(body.description, parseInt(params.id));
+      db.prepare("UPDATE categories SET description = ? WHERE id = ?").run(body.description, catId);
     }
     return NextResponse.json({ ok: true });
   } catch (e: unknown) {

@@ -125,7 +125,7 @@ export default function KBDetailPage() {
   const loadDocs = useCallback(async () => {
     if (!kb) return;
     try {
-      const res = await fetch(`/api/documents?category=${encodeURIComponent(kb.name)}`);
+      const res = await fetch(`/api/documents?category_id=${kb.id}`);
       const data: Doc[] = await res.json();
       if (Array.isArray(data)) {
         setDocs(data);
@@ -215,7 +215,7 @@ export default function KBDetailPage() {
   const loadConversations = useCallback(async () => {
     if (!kb) return;
     try {
-      const res = await fetch(`/api/conversations?category=${encodeURIComponent(kb.name)}`);
+      const res = await fetch(`/api/conversations?category_id=${kb.id}`);
       const data: Conversation[] = await res.json();
       if (Array.isArray(data)) {
         setConversations(data);
@@ -256,7 +256,7 @@ export default function KBDetailPage() {
     setUploading(true);
     const form = new FormData();
     form.append("file", file);
-    form.append("category", kb.name);
+    form.append("category_id", String(kb.id));
     try {
       const res = await fetch("/api/upload", { method: "POST", body: form });
       const data = await res.json();
@@ -312,7 +312,7 @@ export default function KBDetailPage() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: q, category: kb.name, conversation_id: activeConvId }),
+        body: JSON.stringify({ question: q, category_id: kb.id, conversation_id: activeConvId }),
       });
       const ct = res.headers.get("content-type") || "";
       if (!ct.includes("text/event-stream")) {

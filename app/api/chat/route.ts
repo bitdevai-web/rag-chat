@@ -2,16 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSetting } from "@/lib/settings";
 import { retrieveChunks, buildPrompt } from "@/lib/rag";
 import { getDb } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
-    const { question, category, conversation_id } = await req.json();
+    const user = getSessionUser(req);
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { question, category_id, conversation_id } = await req.json();
     if (!question?.trim())
       return NextResponse.json({ error: "No question" }, { status: 400 });
-    if (!category)
-      return NextResponse.json({ error: "No category" }, { status: 400 });
+    if (!category_id)
+      return NextResponse.json({ error: "No category_id" }, { status: 400 });
 
     const provider = getSetting("llm_provider") || "anthropic";
     const apiKey = getSetting("llm_api_key");
@@ -27,8 +31,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Retrieve relevant chunks using local embeddings + LanceDB
-    const chunks = await retrieveChunks(question, category, topK);
+    const db = getDb();
+
+    // Verify ownership of the category
+    const cat = db
+      .prepare("SELECT id FROM categories WHERE id = ? AND owner_id = ?")
+      .get(category_id, user.id) as { id: number } | undefined;
+    if (!cat) return NextResponse.json({ error: "Category not found" }, { status: 404 });
+
+    // Retrieve relevant chunks using local embeddings + LanceDB (keyed by category ID string)
+    const chunks = await retrieveChunks(question, String(cat.id), topK);
 
     if (chunks.length === 0) {
       return NextResponse.json({
@@ -40,36 +52,29 @@ export async function POST(req: NextRequest) {
 
     const prompt = buildPrompt(question, chunks);
 
-    const db = getDb();
-    const cat = db
-      .prepare("SELECT id FROM categories WHERE name = ?")
-      .get(category) as { id: number } | undefined;
-
     // Resolve or create a conversation thread
     let convId: number | null = null;
-    if (cat) {
-      if (conversation_id) {
-        const existing = db
-          .prepare("SELECT id FROM conversations WHERE id = ? AND category_id = ?")
-          .get(conversation_id, cat.id) as { id: number } | undefined;
-        if (existing) convId = existing.id;
-      }
-      if (!convId) {
-        // Auto-create a thread titled with the first question (truncated)
-        const autoTitle = question.slice(0, 60) + (question.length > 60 ? "…" : "");
-        const { lastInsertRowid } = db
-          .prepare("INSERT INTO conversations (category_id, title) VALUES (?, ?)")
-          .run(cat.id, autoTitle);
-        convId = Number(lastInsertRowid);
-      } else {
-        // Bump updated_at for existing thread
-        db.prepare("UPDATE conversations SET updated_at = datetime('now') WHERE id = ?").run(convId);
-      }
-
-      db.prepare(
-        "INSERT INTO messages (category_id, conversation_id, role, content) VALUES (?, ?, 'user', ?)"
-      ).run(cat.id, convId, question);
+    if (conversation_id) {
+      const existing = db
+        .prepare("SELECT id FROM conversations WHERE id = ? AND category_id = ?")
+        .get(conversation_id, cat.id) as { id: number } | undefined;
+      if (existing) convId = existing.id;
     }
+    if (!convId) {
+      // Auto-create a thread titled with the first question (truncated)
+      const autoTitle = question.slice(0, 60) + (question.length > 60 ? "…" : "");
+      const { lastInsertRowid } = db
+        .prepare("INSERT INTO conversations (category_id, title, owner_id) VALUES (?, ?, ?)")
+        .run(cat.id, autoTitle, user.id);
+      convId = Number(lastInsertRowid);
+    } else {
+      // Bump updated_at for existing thread
+      db.prepare("UPDATE conversations SET updated_at = datetime('now') WHERE id = ?").run(convId);
+    }
+
+    db.prepare(
+      "INSERT INTO messages (category_id, conversation_id, role, content) VALUES (?, ?, 'user', ?)"
+    ).run(cat.id, convId, question);
 
     const sources = chunks.map((c) => ({
       file: c.filename,
@@ -112,13 +117,10 @@ export async function POST(req: NextRequest) {
               }
             }
 
-            let assistantMsgId: number | null = null;
-            if (cat) {
-              const r = db.prepare(
+            const r = db.prepare(
                 "INSERT INTO messages (category_id, conversation_id, role, content, sources) VALUES (?, ?, 'assistant', ?, ?)"
               ).run(cat.id, convId, fullText, JSON.stringify(sources));
-              assistantMsgId = Number(r.lastInsertRowid);
-            }
+            const assistantMsgId = Number(r.lastInsertRowid);
 
             send({ sources });
 
@@ -154,13 +156,10 @@ export async function POST(req: NextRequest) {
               }
             }
 
-            let assistantMsgId: number | null = null;
-            if (cat) {
-              const r = db.prepare(
+            const r2 = db.prepare(
                 "INSERT INTO messages (category_id, conversation_id, role, content, sources) VALUES (?, ?, 'assistant', ?, ?)"
               ).run(cat.id, convId, fullText, JSON.stringify(sources));
-              assistantMsgId = Number(r.lastInsertRowid);
-            }
+            const assistantMsgId = Number(r2.lastInsertRowid);
 
             send({ sources });
 
@@ -257,15 +256,19 @@ JSON:`;
 
 export async function GET(req: NextRequest) {
   try {
+    const user = getSessionUser(req);
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const { searchParams } = new URL(req.url);
-    const category = searchParams.get("category");
+    const category_id = searchParams.get("category_id");
     const db = getDb();
 
-    if (!category) return NextResponse.json([]);
+    if (!category_id) return NextResponse.json([]);
 
+    // Verify ownership
     const cat = db
-      .prepare("SELECT id FROM categories WHERE name = ?")
-      .get(category) as { id: number } | undefined;
+      .prepare("SELECT id FROM categories WHERE id = ? AND owner_id = ?")
+      .get(parseInt(category_id), user.id) as { id: number } | undefined;
     if (!cat) return NextResponse.json([]);
 
     const messages = db

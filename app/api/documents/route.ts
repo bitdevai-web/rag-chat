@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db";
+import { getSessionUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -15,32 +16,40 @@ type Doc = {
 
 export async function GET(req: NextRequest) {
   try {
+    const user = getSessionUser(req);
+    if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const { searchParams } = new URL(req.url);
-    const category = searchParams.get("category");
+    const category_id = searchParams.get("category_id");
 
     const db = getDb();
-    let docs: Doc[];
 
-    if (category) {
+    if (category_id) {
+      // Verify ownership
       const cat = db
-        .prepare("SELECT id FROM categories WHERE name = ?")
-        .get(category) as { id: number } | undefined;
+        .prepare("SELECT id FROM categories WHERE id = ? AND owner_id = ?")
+        .get(parseInt(category_id), user.id) as { id: number } | undefined;
       if (!cat) return NextResponse.json([]);
 
-      docs = db
+      const docs = db
         .prepare(
           "SELECT id, filename, file_type, size_bytes, status, created_at, category_id FROM documents WHERE category_id = ? ORDER BY created_at DESC"
         )
         .all(cat.id) as Doc[];
+      return NextResponse.json(docs);
     } else {
-      docs = db
+      // Return all docs for this user's categories
+      const docs = db
         .prepare(
-          "SELECT id, filename, file_type, size_bytes, status, created_at, category_id FROM documents ORDER BY created_at DESC"
+          `SELECT d.id, d.filename, d.file_type, d.size_bytes, d.status, d.created_at, d.category_id
+           FROM documents d
+           JOIN categories c ON c.id = d.category_id
+           WHERE c.owner_id = ?
+           ORDER BY d.created_at DESC`
         )
-        .all() as Doc[];
+        .all(user.id) as Doc[];
+      return NextResponse.json(docs);
     }
-
-    return NextResponse.json(docs);
   } catch (e: unknown) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
   }
