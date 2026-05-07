@@ -68,6 +68,7 @@ export default function Navbar() {
           {navLink("/compare",   "Contract Compare")}
           {navLink("/features",  "Features")}
           {navLink("/support",   "Support")}
+          {userRole === "admin" && navLink("/admin", "Admin")}
         </div>
 
         {/* User menu */}
