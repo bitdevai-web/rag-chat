@@ -2,338 +2,538 @@
 
 import Link from "next/link";
 import {
-  FileSearch, AlertTriangle, CheckCircle, XCircle, ArrowRight,
-  Shield, Zap, FileText, Scale, AlertCircle, Eye, Clock,
-  ChevronRight, Star,
+  FileSearch, Brain, Database, MessageSquare, Shield, Zap,
+  FileText, Search, Globe, Clock, CheckCircle, Upload,
+  ArrowRight, Star, Users, Lock, Server, RefreshCw,
+  BarChart3, BookMarked, Eye, AlertTriangle, Layers,
+  ChevronRight, Building2, Scale, Stethoscope, GraduationCap,
 } from "lucide-react";
 import { CogniBaseLogo } from "@/components/CogniBaseLogo";
 
-const STEPS = [
+// ── Data ──────────────────────────────────────────────────────────────────────
+
+const FEATURES = [
   {
-    step: "01",
-    icon: FileText,
-    title: "Upload Your Standard T&C",
-    desc: "Your baseline contract — the agreed terms your company always requires. Supports PDF, DOCX, and plain text.",
-    color: "from-blue-500 to-cyan-500",
-    bg: "bg-blue-50",
-    border: "border-blue-100",
+    icon: Brain,
+    title: "Local AI Embeddings",
+    desc: "Documents are indexed using the all-MiniLM-L6-v2 model running entirely on your server via ONNX. No third-party embedding API required — your data never leaves your infrastructure.",
+    tags: ["On-device", "No API cost", "Private"],
   },
   {
-    step: "02",
+    icon: MessageSquare,
+    title: "Natural Language Chat",
+    desc: "Ask questions the way you think. Instead of searching through folders, type your question and get precise answers extracted from your documents in seconds, with source citations.",
+    tags: ["Conversational", "Context-aware", "Streaming"],
+  },
+  {
     icon: FileSearch,
-    title: "Upload the Incoming Contract",
-    desc: "The vendor or partner's contract that needs review. Drop it in and the AI reads every clause immediately.",
-    color: "from-violet-500 to-purple-500",
-    bg: "bg-violet-50",
-    border: "border-violet-100",
+    title: "Contract Comparison & Redlining",
+    desc: "Upload your standard T&C as a baseline. Every new vendor or partner contract is automatically compared clause by clause — missing terms, risky additions, and modified language are all flagged with severity ratings.",
+    tags: ["Auto-compare", "Risk scoring", "Recommendations"],
   },
   {
-    step: "03",
+    icon: Search,
+    title: "Hybrid Search (Vector + Keyword)",
+    desc: "Combines semantic vector search with BM25 keyword search using Reciprocal Rank Fusion (RRF). Finds relevant content even when the exact words differ — the best of both retrieval methods.",
+    tags: ["Vector search", "BM25", "RRF fusion"],
+  },
+  {
+    icon: Eye,
+    title: "OCR for Scanned Documents",
+    desc: "Upload scanned PDFs or image-based documents. CogniBase automatically detects image-only PDFs and runs OCR using Tesseract to extract text before indexing — no manual conversion needed.",
+    tags: ["Auto-detect", "Tesseract OCR", "Scanned PDFs"],
+  },
+  {
+    icon: Upload,
+    title: "Multi-format Document Support",
+    desc: "Upload PDFs, Word documents, PowerPoint presentations, Excel spreadsheets, Markdown, CSV, and plain text files. All formats are automatically parsed and indexed.",
+    tags: ["PDF", "DOCX", "PPTX", "XLSX", "TXT", "MD", "CSV"],
+  },
+  {
+    icon: Database,
+    title: "Knowledge Base Organisation",
+    desc: "Organise documents into separate knowledge bases by topic, project, or department. Each knowledge base has isolated document storage, chat history, and comparison baselines.",
+    tags: ["Isolated", "Categorised", "Scalable"],
+  },
+  {
     icon: Zap,
-    title: "AI Analyses in Seconds",
-    desc: "CogniBase compares every clause — payment terms, liability caps, IP ownership, termination rights, and more.",
-    color: "from-amber-500 to-orange-500",
-    bg: "bg-amber-50",
-    border: "border-amber-100",
+    title: "AI-Generated Summaries",
+    desc: "Generate a comprehensive AI summary of any knowledge base with one click. The summary covers main topics, key insights, and document types — auto-updated as new documents are added.",
+    tags: ["One-click", "Comprehensive", "Stored"],
   },
   {
-    step: "04",
+    icon: Globe,
+    title: "Bring Your Own LLM",
+    desc: "Connect your own Anthropic Claude or OpenAI GPT API key for chat completions. Switch providers and models anytime from the Settings page. No vendor lock-in.",
+    tags: ["Anthropic", "OpenAI", "Configurable"],
+  },
+  {
     icon: Shield,
-    title: "Get a Full Risk Report",
-    desc: "Receive a structured redline report with severity flags, exact clause comparisons, and clear recommendations.",
-    color: "from-emerald-500 to-teal-500",
-    bg: "bg-emerald-50",
-    border: "border-emerald-100",
+    title: "Self-hosted & Secure",
+    desc: "CogniBase runs entirely on your own server. All documents, embeddings, and chat history are stored locally in SQLite and LanceDB. Only your LLM chat calls go to the external provider you configure.",
+    tags: ["Self-hosted", "Local storage", "GDPR-friendly"],
+  },
+  {
+    icon: Users,
+    title: "Multi-user & Role-based Access",
+    desc: "Create teams, invite members, and control access per knowledge base. Roles include Admin, Editor, and Viewer. Full audit log tracks who accessed or modified what.",
+    tags: ["Teams", "RBAC", "Audit log"],
+  },
+  {
+    icon: RefreshCw,
+    title: "Real-time Processing",
+    desc: "Upload a document and it is indexed in the background while you continue working. Status updates automatically — Processing → OCR Running → Processed.",
+    tags: ["Background", "Non-blocking", "Live status"],
+  },
+  {
+    icon: Clock,
+    title: "Persistent Chat History",
+    desc: "Chat conversations are saved per knowledge base with full thread management. Create multiple conversation threads, pick up where you left off, or clear history anytime.",
+    tags: ["Persistent", "Per-KB", "Threads"],
+  },
+  {
+    icon: BookMarked,
+    title: "Baseline Document Management",
+    desc: "Mark any document as the baseline for contract comparison. Every subsequent upload is automatically compared against it and the full risk report is stored and viewable inline.",
+    tags: ["Auto-compare", "Stored results", "Inline report"],
+  },
+  {
+    icon: Lock,
+    title: "Secure Authentication",
+    desc: "HMAC-SHA256 signed session tokens with expiry. Bcrypt password hashing. Google OAuth 2.0 support. Session cookies with secure flags. No plaintext credentials stored.",
+    tags: ["HMAC tokens", "Bcrypt", "OAuth 2.0"],
+  },
+  {
+    icon: BarChart3,
+    title: "Source Citations & Match Scores",
+    desc: "Every AI answer shows exactly which document and section the information came from, with a percentage match score. Click any citation to jump directly to the relevant passage.",
+    tags: ["Traceable", "Clickable", "Transparent"],
   },
 ];
 
-const MOCK_FINDINGS = [
-  {
-    type: "missing",
-    severity: "critical",
-    clause: "Liability Cap",
-    baseline: "Liability limited to 3× the contract value in any 12-month period.",
-    incoming: null,
-    risk: "No liability cap means your exposure is unlimited. This is a critical omission that must be resolved before signing.",
-    recommendation: "Reject — insist on inserting your standard liability cap clause.",
-    sevColor: "bg-red-50 border-red-200",
-    badge: "bg-red-100 text-red-800 border-red-200",
-  },
-  {
-    type: "modified",
-    severity: "high",
-    clause: "Payment Terms",
-    baseline: "Net 30 days from invoice date.",
-    incoming: "Net 60 days from receipt and approval of invoice by the vendor's finance team.",
-    risk: "Extended to Net 60 with approval gate — could stretch to 90+ days in practice, impacting cash flow.",
-    recommendation: "Negotiate — propose Net 45 maximum without an approval gate.",
-    sevColor: "bg-orange-50 border-orange-200",
-    badge: "bg-orange-100 text-orange-800 border-orange-200",
-  },
-  {
-    type: "risky",
-    severity: "high",
-    clause: "IP Ownership",
-    baseline: "All work product created under this agreement is owned by the client.",
-    incoming: "Vendor retains ownership of all pre-existing IP and any derivative works.",
-    risk: "Derivative works clause may capture deliverables you commissioned. Any custom work could legally belong to the vendor.",
-    recommendation: "Reject — require explicit assignment of all deliverables to client.",
-    sevColor: "bg-orange-50 border-orange-200",
-    badge: "bg-orange-100 text-orange-800 border-orange-200",
-  },
-  {
-    type: "modified",
-    severity: "medium",
-    clause: "Governing Law",
-    baseline: "Laws of England and Wales.",
-    incoming: "Laws of the State of Delaware, United States.",
-    risk: "Dispute resolution would require US legal representation. Adds cost and complexity for an overseas entity.",
-    recommendation: "Negotiate — request mutual agreement on England & Wales or international arbitration.",
-    sevColor: "bg-amber-50 border-amber-200",
-    badge: "bg-amber-100 text-amber-800 border-amber-200",
-  },
+const FORMATS = [
+  { ext: "PDF", desc: "Text & Scanned (OCR)", icon: "📄" },
+  { ext: "DOCX", desc: "Microsoft Word", icon: "📝" },
+  { ext: "PPTX", desc: "PowerPoint", icon: "📊" },
+  { ext: "XLSX", desc: "Excel Spreadsheets", icon: "📈" },
+  { ext: "TXT", desc: "Plain Text", icon: "📃" },
+  { ext: "MD", desc: "Markdown", icon: "📋" },
+  { ext: "CSV", desc: "Comma-separated", icon: "📊" },
 ];
-
-const MOCK_ACCEPTABLE = ["Confidentiality", "Force Majeure", "Data Protection (GDPR)", "Notice Period"];
-
-const TYPE_ICON: Record<string, React.ElementType> = {
-  missing:  XCircle,
-  modified: AlertCircle,
-  risky:    AlertTriangle,
-  added:    Eye,
-};
 
 const USE_CASES = [
-  { icon: Scale,         title: "Vendor Contracts",    desc: "Review supplier agreements against your procurement standards before signing." },
-  { icon: FileText,      title: "SaaS Agreements",     desc: "Spot unfavourable auto-renewal, data retention, or price escalation clauses." },
-  { icon: Shield,        title: "NDAs & Partnerships",  desc: "Ensure confidentiality scope, term, and exceptions match your policy." },
-  { icon: AlertTriangle, title: "Employment Contracts", desc: "Check IP assignment, non-compete, and restrictive covenant deviations." },
-  { icon: Clock,         title: "Lease Agreements",    desc: "Compare rent review, break clauses, and dilapidations against your template." },
-  { icon: Star,          title: "M&A Due Diligence",   desc: "Rapidly flag non-standard terms across hundreds of target-company contracts." },
+  { icon: Scale,          color: "from-blue-400 to-cyan-500",    title: "Legal & Contracts",    desc: "Review vendor agreements, compare clauses against standard T&C, flag risky deviations before signing." },
+  { icon: Building2,      color: "from-indigo-400 to-blue-500",  title: "HR & Compliance",      desc: "Index policy documents, employee handbooks, and compliance guidelines. Instant answers for HR queries." },
+  { icon: Stethoscope,    color: "from-cyan-400 to-teal-500",    title: "Healthcare",           desc: "Organise clinical protocols, research papers, and SOPs. Ask questions across thousands of documents." },
+  { icon: GraduationCap,  color: "from-violet-400 to-indigo-500",title: "Education & Research", desc: "Build searchable knowledge bases from research papers, lecture notes, and course material." },
+  { icon: BarChart3,      color: "from-teal-400 to-cyan-500",    title: "Finance & Audit",      desc: "Index financial reports, audit trails, and regulatory filings. Surface key figures instantly." },
+  { icon: Layers,         color: "from-blue-400 to-indigo-500",  title: "Product & Engineering",desc: "Search across technical specs, API docs, and RFCs. Keep teams aligned on a single source of truth." },
 ];
+
+const TECH_STACK = [
+  { label: "Frontend",    value: "Next.js 14 App Router · React · Tailwind CSS" },
+  { label: "Backend",     value: "Next.js API Routes · Node.js 20" },
+  { label: "Database",    value: "SQLite (better-sqlite3) · LanceDB (vector)" },
+  { label: "Embeddings",  value: "all-MiniLM-L6-v2 via ONNX Runtime (local)" },
+  { label: "OCR",         value: "Tesseract.js · pdftoppm (poppler)" },
+  { label: "Search",      value: "Vector + BM25 + Reciprocal Rank Fusion" },
+  { label: "LLM",         value: "Anthropic Claude · OpenAI GPT (your API key)" },
+  { label: "Auth",        value: "HMAC-SHA256 sessions · Bcrypt · Google OAuth 2.0" },
+  { label: "Deployment",  value: "PM2 · Docker · Any Linux VPS" },
+];
+
+const PRICING = [
+  {
+    name: "Pilot",
+    server: "Hetzner CX22",
+    serverCost: "₹400",
+    model: "GPT-4o Mini",
+    apiCost: "₹225",
+    total: "₹625",
+    usage: "100 msgs/day",
+    users: "Up to 5 users",
+    color: "border-slate-200",
+    badge: "",
+  },
+  {
+    name: "Team",
+    server: "Hetzner CX32",
+    serverCost: "₹720",
+    model: "Claude Haiku",
+    apiCost: "₹1,300",
+    total: "₹2,020",
+    usage: "100 msgs/day",
+    users: "Up to 30 users",
+    color: "border-cyan-300",
+    badge: "Most Popular",
+  },
+  {
+    name: "Business",
+    server: "Hetzner CCX23",
+    serverCost: "₹1,600",
+    model: "Claude Sonnet",
+    apiCost: "₹9,360",
+    total: "₹10,960",
+    usage: "200 msgs/day",
+    users: "Unlimited users",
+    color: "border-indigo-300",
+    badge: "Best Quality",
+  },
+];
+
+// ── Component ─────────────────────────────────────────────────────────────────
 
 export default function ShowcasePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950">
+    <div className="min-h-screen" style={{
+      background: "radial-gradient(ellipse 70% 50% at 0% 0%, rgba(6,182,212,0.06) 0%, transparent 60%), radial-gradient(ellipse 60% 50% at 100% 100%, rgba(99,102,241,0.06) 0%, transparent 60%), #f0f4f8"
+    }}>
+
       {/* Nav */}
-      <nav className="flex items-center justify-between px-8 py-5 max-w-6xl mx-auto">
-        <CogniBaseLogo height={36} variant="dark" />
-        <div className="flex items-center gap-4">
-          <Link href="/login" className="text-sm text-slate-400 hover:text-white transition-colors">Sign in</Link>
-          <Link
-            href="/login"
-            className="text-sm font-semibold bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-400 hover:to-blue-400 text-white px-4 py-2 rounded-lg transition-all"
-          >
-            Try free →
+      <nav className="flex items-center justify-between px-8 py-4 max-w-7xl mx-auto">
+        <CogniBaseLogo height={36} variant="light" />
+        <div className="flex items-center gap-6 text-sm text-slate-500">
+          <a href="#features"  className="hover:text-slate-800 transition-colors">Features</a>
+          <a href="#usecases"  className="hover:text-slate-800 transition-colors">Use Cases</a>
+          <a href="#tech"      className="hover:text-slate-800 transition-colors">Tech Stack</a>
+          <a href="#pricing"   className="hover:text-slate-800 transition-colors">Pricing</a>
+        </div>
+        <div className="flex items-center gap-3">
+          <Link href="/login" className="text-sm text-slate-600 hover:text-slate-800 transition-colors font-medium">Sign in</Link>
+          <Link href="/login" className="text-sm font-semibold text-white px-4 py-2 rounded-xl transition-all logo-gradient-bg hover:opacity-90 shadow-sm">
+            Get Started →
           </Link>
         </div>
       </nav>
 
       {/* Hero */}
-      <section className="max-w-6xl mx-auto px-8 pt-16 pb-20 text-center">
-        <div className="inline-flex items-center gap-2 bg-blue-500/10 border border-blue-500/30 text-blue-300 text-xs font-semibold px-4 py-2 rounded-full mb-8">
-          <Zap size={12} /> New · Contract Comparison — powered by AI
+      <section className="max-w-7xl mx-auto px-8 pt-20 pb-24 text-center">
+        <div className="inline-flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-full border mb-8"
+          style={{ background: "rgba(6,182,212,0.06)", borderColor: "rgba(6,182,212,0.3)", color: "#0891b2" }}>
+          <Zap size={11} /> AI-Powered · Self-hosted · Privacy-first
         </div>
-        <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 leading-tight">
-          Know exactly what's different<br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-violet-400">
-            before you sign
-          </span>
+
+        <h1 className="text-5xl md:text-6xl font-bold text-slate-800 mb-6 leading-tight">
+          Your documents,<br />
+          <span className="logo-gradient-text">intelligently organised</span>
         </h1>
-        <p className="text-slate-400 text-lg mb-10 max-w-2xl mx-auto leading-relaxed">
-          Upload your standard T&C and any incoming vendor or partner contract.
-          CogniBase highlights every clause that differs, is missing, or is risky —
-          in seconds, not days.
+
+        <p className="text-slate-500 text-lg mb-10 max-w-2xl mx-auto leading-relaxed">
+          CogniBase transforms your documents into a searchable knowledge base.
+          Upload any file, ask questions in plain English, compare contracts automatically,
+          and get instant cited answers — all running on your own server.
         </p>
+
         <div className="flex items-center justify-center gap-4 flex-wrap">
-          <Link
-            href="/compare"
-            className="inline-flex items-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-sm px-7 py-3.5 rounded-xl shadow-lg shadow-cyan-500/30 transition-all"
-          >
-            <FileSearch size={16} /> Try the Comparison Tool
-            <ArrowRight size={14} />
+          <Link href="/login" className="inline-flex items-center gap-2 text-white font-bold text-sm px-7 py-3.5 rounded-xl shadow-sm logo-gradient-bg hover:opacity-90 transition-all">
+            <Brain size={16} /> Start Using CogniBase
           </Link>
-          <a
-            href="#demo"
-            className="inline-flex items-center gap-2 border border-slate-600 hover:border-slate-400 text-slate-300 hover:text-white font-semibold text-sm px-7 py-3.5 rounded-xl transition-all"
-          >
-            See demo output
+          <a href="#features" className="inline-flex items-center gap-2 border border-slate-300 hover:border-slate-400 text-slate-600 hover:text-slate-800 font-semibold text-sm px-7 py-3.5 rounded-xl transition-all bg-white/60">
+            Explore Features <ChevronRight size={14} />
           </a>
         </div>
-      </section>
 
-      {/* How it works */}
-      <section className="max-w-6xl mx-auto px-8 pb-20">
-        <h2 className="text-2xl font-bold text-white text-center mb-2">How it works</h2>
-        <p className="text-slate-400 text-center text-sm mb-10">Four steps from upload to risk report</p>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-          {STEPS.map((s) => {
-            const Icon = s.icon;
-            return (
-              <div key={s.step} className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-2xl p-5 hover:bg-white/8 transition-all">
-                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${s.color} flex items-center justify-center mb-4 shadow-lg`}>
-                  <Icon size={18} className="text-white" />
-                </div>
-                <p className="text-xs font-bold text-slate-500 mb-1">{s.step}</p>
-                <h3 className="text-sm font-bold text-white mb-2">{s.title}</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">{s.desc}</p>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* Mock Demo Output */}
-      <section id="demo" className="max-w-6xl mx-auto px-8 pb-20">
-        <h2 className="text-2xl font-bold text-white text-center mb-2">Sample report output</h2>
-        <p className="text-slate-400 text-center text-sm mb-10">This is what a real analysis looks like</p>
-
-        {/* Risk banner */}
-        <div className="bg-orange-950/40 border border-orange-700/50 rounded-2xl p-5 mb-5 flex items-start gap-4">
-          <Shield size={22} className="text-orange-400 mt-0.5" />
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-1 flex-wrap">
-              <p className="text-sm font-bold text-white">standard-tc.pdf vs vendor-agreement.pdf</p>
-              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full border bg-orange-100 text-orange-800 border-orange-200 uppercase">
-                High Risk
-              </span>
-            </div>
-            <p className="text-sm text-slate-300 leading-relaxed">
-              The incoming contract deviates significantly from your standard terms in four critical areas.
-              The absence of a liability cap and unfavourable IP ownership clause represent the most urgent
-              concerns and must be renegotiated before signing.
-            </p>
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-5 gap-3 mb-5">
+        {/* Stats strip */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto mt-16">
           {[
-            { label: "Clauses Analysed", value: "12", color: "text-blue-400" },
-            { label: "Differences",       value: "4",  color: "text-amber-400" },
-            { label: "Missing Clauses",   value: "1",  color: "text-red-400" },
-            { label: "Added Clauses",     value: "0",  color: "text-indigo-400" },
-            { label: "Risk Flags",        value: "3",  color: "text-orange-400" },
+            { value: "16+",     label: "Core Features" },
+            { value: "7",       label: "File Formats" },
+            { value: "₹0",      label: "Embedding Cost" },
+            { value: "100%",    label: "Self-hosted" },
           ].map((s) => (
-            <div key={s.label} className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-              <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
+            <div key={s.label} className="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200 py-4 px-3 shadow-sm">
+              <p className="text-2xl font-bold logo-gradient-text">{s.value}</p>
               <p className="text-xs text-slate-500 mt-0.5">{s.label}</p>
             </div>
           ))}
         </div>
+      </section>
 
-        {/* Findings */}
-        <div className="bg-white rounded-2xl border border-gray-200 p-5 space-y-3 mb-5">
-          <p className="text-sm font-bold text-gray-900 mb-4">Findings (4)</p>
-          {MOCK_FINDINGS.map((f, i) => {
-            const Icon = TYPE_ICON[f.type] ?? AlertCircle;
-            return (
-              <div key={i} className={`rounded-xl border ${f.sevColor} overflow-hidden`}>
-                <div className="px-4 py-3.5 flex items-center gap-3">
-                  <Icon size={15} className={
-                    f.severity === "critical" ? "text-red-600" :
-                    f.severity === "high"     ? "text-orange-600" : "text-amber-600"
-                  } />
-                  <span className="text-sm font-semibold text-gray-900 flex-1">{f.clause}</span>
-                  <span className={`text-xs font-bold px-2 py-0.5 rounded-full border uppercase ${f.badge}`}>
-                    {f.severity}
-                  </span>
-                  <span className="text-xs bg-white border border-gray-200 text-gray-600 px-2 py-0.5 rounded-full capitalize">
-                    {f.type}
-                  </span>
-                  <ChevronRight size={14} className="text-gray-400" />
-                </div>
-                <div className="px-4 pb-4 pt-2 border-t border-white/50 space-y-3">
-                  {f.baseline && (
-                    <div>
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Our Standard</p>
-                      <p className="text-xs text-gray-700 bg-white/80 rounded-lg p-3 border border-white">{f.baseline}</p>
-                    </div>
-                  )}
-                  {f.incoming && (
-                    <div>
-                      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Incoming Contract</p>
-                      <p className="text-xs text-gray-700 bg-white/80 rounded-lg p-3 border border-white">{f.incoming}</p>
-                    </div>
-                  )}
-                  {!f.incoming && (
-                    <div className="text-xs text-red-600 bg-red-50 rounded-lg p-3 border border-red-100 font-medium">
-                      ✗ This clause is entirely absent from the incoming contract
-                    </div>
-                  )}
-                  <div>
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Risk</p>
-                    <p className="text-xs text-gray-700">{f.risk}</p>
-                  </div>
-                  <div className={`rounded-lg px-3 py-2 text-xs border font-medium ${
-                    f.recommendation.startsWith("Reject")    ? "bg-red-50 border-red-200 text-red-800" :
-                    f.recommendation.startsWith("Negotiate") ? "bg-amber-50 border-amber-200 text-amber-800" :
-                    "bg-emerald-50 border-emerald-200 text-emerald-800"
-                  }`}>
-                    💡 {f.recommendation}
-                  </div>
+      {/* Supported formats */}
+      <section className="max-w-7xl mx-auto px-8 pb-16">
+        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-5">Supported File Formats</p>
+          <div className="flex flex-wrap gap-3">
+            {FORMATS.map((f) => (
+              <div key={f.ext} className="flex items-center gap-2.5 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 hover:border-cyan-300 transition-colors">
+                <span className="text-lg">{f.icon}</span>
+                <div>
+                  <p className="text-xs font-bold text-slate-800">{f.ext}</p>
+                  <p className="text-[10px] text-slate-400">{f.desc}</p>
                 </div>
               </div>
-            );
-          })}
-        </div>
-
-        {/* Acceptable */}
-        <div className="bg-emerald-950/30 border border-emerald-700/40 rounded-2xl p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <CheckCircle size={14} className="text-emerald-400" />
-            <p className="text-sm font-semibold text-emerald-300">Matching / Acceptable Clauses (4)</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {MOCK_ACCEPTABLE.map((c) => (
-              <span key={c} className="text-xs bg-emerald-950/50 border border-emerald-700/50 text-emerald-300 px-3 py-1 rounded-full">
-                ✓ {c}
-              </span>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Use cases */}
-      <section className="max-w-6xl mx-auto px-8 pb-20">
-        <h2 className="text-2xl font-bold text-white text-center mb-2">Use it for any contract type</h2>
-        <p className="text-slate-400 text-center text-sm mb-10">Works on any document where you have a baseline standard</p>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {USE_CASES.map((u) => {
-            const Icon = u.icon;
+      {/* Features */}
+      <section id="features" className="max-w-7xl mx-auto px-8 pb-24">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-slate-800 mb-3">Everything you need</h2>
+          <p className="text-slate-500 text-sm max-w-xl mx-auto">
+            A complete AI document platform — built for teams who need answers, not just search results.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {FEATURES.map((f, i) => {
+            const Icon = f.icon;
             return (
-              <div key={u.title} className="bg-white/5 border border-white/10 rounded-2xl p-5 hover:bg-white/8 transition-all">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/20 flex items-center justify-center mb-3">
-                  <Icon size={16} className="text-cyan-400" />
+              <div key={i} className="bg-white rounded-2xl border border-slate-200 p-6 hover:border-cyan-300 hover:shadow-md transition-all group shadow-sm">
+                <div className="w-10 h-10 rounded-xl logo-gradient-bg flex items-center justify-center mb-4 shadow-sm group-hover:scale-105 transition-transform">
+                  <Icon size={18} className="text-white" />
                 </div>
-                <h3 className="text-sm font-bold text-white mb-1.5">{u.title}</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">{u.desc}</p>
+                <h3 className="text-sm font-bold text-slate-800 mb-2">{f.title}</h3>
+                <p className="text-xs text-slate-500 leading-relaxed mb-4">{f.desc}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {f.tags.map((tag) => (
+                    <span key={tag} className="text-[10px] font-medium px-2 py-0.5 rounded-full border"
+                      style={{ background: "rgba(6,182,212,0.06)", borderColor: "rgba(6,182,212,0.2)", color: "#0891b2" }}>
+                      {tag}
+                    </span>
+                  ))}
+                </div>
               </div>
             );
           })}
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="max-w-6xl mx-auto px-8 pb-24">
-        <div className="bg-gradient-to-br from-blue-600 to-violet-700 rounded-3xl p-10 text-center">
-          <h2 className="text-3xl font-bold text-white mb-3">Ready to review your first contract?</h2>
-          <p className="text-blue-100 text-sm mb-8 max-w-xl mx-auto">
-            Sign in to CogniBase and run a comparison in under 30 seconds.
-            No setup required — just upload and go.
+      {/* How it works */}
+      <section className="max-w-7xl mx-auto px-8 pb-24">
+        <div className="rounded-3xl p-10 logo-gradient-bg shadow-lg">
+          <h2 className="text-2xl font-bold text-white text-center mb-2">How CogniBase works</h2>
+          <p className="text-white/70 text-sm text-center mb-10">From document upload to cited answer in seconds</p>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
+            {[
+              { step: "1", icon: Upload,      title: "Upload",          desc: "Add PDFs, Word docs, spreadsheets. Scanned docs are OCR'd automatically." },
+              { step: "2", icon: Brain,       title: "Auto-index",      desc: "Text is chunked, embedded locally using ONNX, and stored in LanceDB." },
+              { step: "3", icon: Search,      title: "Hybrid search",   desc: "Vector + keyword search retrieves the most relevant chunks." },
+              { step: "4", icon: Zap,         title: "LLM answers",     desc: "Your chosen LLM generates a precise answer from the retrieved context." },
+              { step: "5", icon: CheckCircle, title: "Cited results",   desc: "Answer includes source document name and match % — always traceable." },
+            ].map((s, i) => {
+              const Icon = s.icon;
+              return (
+                <div key={i} className="flex flex-col items-center text-center">
+                  <div className="w-12 h-12 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center mb-3 shadow-sm">
+                    <Icon size={20} className="text-white" />
+                  </div>
+                  <div className="text-[10px] font-bold text-white/50 mb-1">STEP {s.step}</div>
+                  <p className="text-sm font-bold text-white mb-1">{s.title}</p>
+                  <p className="text-xs text-white/65 leading-relaxed">{s.desc}</p>
+                  {i < 4 && <ArrowRight size={16} className="text-white/30 mt-3 hidden md:block rotate-0" />}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* Use cases */}
+      <section id="usecases" className="max-w-7xl mx-auto px-8 pb-24">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-slate-800 mb-3">Built for every industry</h2>
+          <p className="text-slate-500 text-sm max-w-xl mx-auto">
+            Wherever documents contain knowledge that teams need to access quickly — CogniBase fits.
           </p>
-          <Link
-            href="/login"
-            className="inline-flex items-center gap-2 bg-white text-blue-700 hover:bg-blue-50 font-bold text-sm px-8 py-3.5 rounded-xl transition-all shadow-xl"
-          >
-            Get started free <ArrowRight size={15} />
-          </Link>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {USE_CASES.map((u) => {
+            const Icon = u.icon;
+            return (
+              <div key={u.title} className="bg-white rounded-2xl border border-slate-200 p-6 hover:border-cyan-300 hover:shadow-md transition-all group shadow-sm">
+                <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${u.color} flex items-center justify-center mb-4 shadow-sm`}>
+                  <Icon size={18} className="text-white" />
+                </div>
+                <h3 className="text-sm font-bold text-slate-800 mb-2">{u.title}</h3>
+                <p className="text-xs text-slate-500 leading-relaxed">{u.desc}</p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Contract comparison highlight */}
+      <section className="max-w-7xl mx-auto px-8 pb-24">
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="grid grid-cols-1 lg:grid-cols-2">
+            <div className="p-10">
+              <div className="inline-flex items-center gap-2 text-xs font-bold px-3 py-1.5 rounded-full mb-6"
+                style={{ background: "rgba(6,182,212,0.08)", color: "#0891b2" }}>
+                <FileSearch size={11} /> Featured Capability
+              </div>
+              <h2 className="text-3xl font-bold text-slate-800 mb-4 leading-tight">
+                Automatic contract<br />comparison & redlining
+              </h2>
+              <p className="text-slate-500 text-sm leading-relaxed mb-6">
+                Upload your standard T&C as the baseline once. Every new vendor or partner contract
+                uploaded is automatically compared — the AI reads every clause and flags what changed,
+                what&apos;s missing, and what&apos;s risky, with plain-English recommendations.
+              </p>
+              <ul className="space-y-3 mb-8">
+                {[
+                  "Detects modified, missing, added, and risky clauses",
+                  "Severity rating: low / medium / high / critical per clause",
+                  "Recommendation per finding: Accept / Negotiate / Reject",
+                  "Full report stored inline — no need to re-run",
+                  "Works on PDF, DOCX, and scanned documents (OCR)",
+                ].map((pt) => (
+                  <li key={pt} className="flex items-start gap-2.5 text-xs text-slate-600">
+                    <CheckCircle size={13} className="text-cyan-500 mt-0.5 shrink-0" /> {pt}
+                  </li>
+                ))}
+              </ul>
+              <Link href="/compare" className="inline-flex items-center gap-2 text-white font-semibold text-sm px-5 py-2.5 rounded-xl logo-gradient-bg hover:opacity-90 transition-all shadow-sm">
+                Try Contract Compare <ArrowRight size={14} />
+              </Link>
+            </div>
+            <div className="bg-slate-50 border-l border-slate-200 p-8 flex flex-col justify-center">
+              {/* Mock report preview */}
+              <div className="bg-white rounded-2xl border border-orange-200 p-4 mb-3 shadow-sm">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertTriangle size={13} className="text-orange-500" />
+                  <span className="text-xs font-bold text-slate-800">IP Ownership</span>
+                  <span className="ml-auto text-[10px] font-bold bg-red-100 text-red-800 border border-red-200 px-2 py-0.5 rounded-full">CRITICAL</span>
+                </div>
+                <p className="text-[11px] text-slate-500 mb-1"><span className="font-semibold text-slate-600">Baseline:</span> All work product owned by client upon creation.</p>
+                <p className="text-[11px] text-slate-500 mb-2"><span className="font-semibold text-slate-600">Incoming:</span> Vendor retains all IP including derivative works.</p>
+                <span className="text-[10px] font-bold bg-red-50 text-red-800 border border-red-200 px-2 py-1 rounded-lg">💡 Reject — reclaim IP ownership</span>
+              </div>
+              <div className="bg-white rounded-2xl border border-amber-200 p-4 mb-3 shadow-sm">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertTriangle size={13} className="text-amber-500" />
+                  <span className="text-xs font-bold text-slate-800">Payment Terms</span>
+                  <span className="ml-auto text-[10px] font-bold bg-orange-100 text-orange-800 border border-orange-200 px-2 py-0.5 rounded-full">HIGH</span>
+                </div>
+                <p className="text-[11px] text-slate-500 mb-2">Changed from Net 30 to Net 60 with approval gate — cash flow impact.</p>
+                <span className="text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 px-2 py-1 rounded-lg">💡 Negotiate — propose Net 45</span>
+              </div>
+              <div className="bg-white rounded-2xl border border-emerald-200 p-4 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <CheckCircle size={13} className="text-emerald-500" />
+                  <span className="text-xs font-bold text-slate-800">Matching Clauses</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {["Confidentiality", "Force Majeure", "GDPR Compliance"].map(c => (
+                    <span key={c} className="text-[10px] bg-emerald-50 border border-emerald-200 text-emerald-700 px-2 py-0.5 rounded-full">✓ {c}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Tech stack */}
+      <section id="tech" className="max-w-7xl mx-auto px-8 pb-24">
+        <div className="text-center mb-10">
+          <h2 className="text-3xl font-bold text-slate-800 mb-3">Technology stack</h2>
+          <p className="text-slate-500 text-sm">Open, modern, and designed to run anywhere</p>
+        </div>
+        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+            {TECH_STACK.map((t, i) => (
+              <div key={i} className="px-6 py-5 border-b border-r border-slate-100 last:border-r-0">
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{t.label}</p>
+                <p className="text-sm text-slate-700 font-medium leading-relaxed">{t.value}</p>
+              </div>
+            ))}
+          </div>
+          <div className="px-6 py-4 border-t border-slate-100 flex items-center gap-2"
+            style={{ background: "rgba(6,182,212,0.04)" }}>
+            <Server size={13} className="text-cyan-500" />
+            <p className="text-xs text-slate-600">
+              <span className="font-semibold">Privacy-first:</span> Embeddings run locally. Documents stored in SQLite + LanceDB on your server. Only LLM chat calls leave your infrastructure.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing */}
+      <section id="pricing" className="max-w-7xl mx-auto px-8 pb-24">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-slate-800 mb-3">Transparent pricing</h2>
+          <p className="text-slate-500 text-sm max-w-xl mx-auto">
+            You pay only for the server you host and the LLM API calls you make. No per-seat fees, no hidden costs.
+            Embeddings are always free — they run on your server.
+          </p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {PRICING.map((p) => (
+            <div key={p.name} className={`bg-white rounded-3xl border-2 ${p.color} p-7 shadow-sm relative`}>
+              {p.badge && (
+                <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
+                  <span className="text-[10px] font-bold text-white px-3 py-1 rounded-full logo-gradient-bg shadow-sm whitespace-nowrap">
+                    {p.badge}
+                  </span>
+                </div>
+              )}
+              <h3 className="text-lg font-bold text-slate-800 mb-1">{p.name}</h3>
+              <p className="text-xs text-slate-400 mb-5">{p.usage} · {p.users}</p>
+
+              <div className="text-3xl font-bold logo-gradient-text mb-1">{p.total}</div>
+              <p className="text-xs text-slate-400 mb-6">estimated / month</p>
+
+              <div className="space-y-2.5 text-xs text-slate-600 border-t border-slate-100 pt-5">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Server ({p.server})</span>
+                  <span className="font-semibold">{p.serverCost}/mo</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">LLM API ({p.model})</span>
+                  <span className="font-semibold">{p.apiCost}/mo</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Embeddings</span>
+                  <span className="font-semibold text-emerald-600">₹0 (local)</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p className="text-center text-xs text-slate-400">
+          Prices are estimates. API costs scale with actual usage. Server costs are fixed.
+          <span className="mx-2">·</span>
+          USD/EUR converted at current rates.
+        </p>
+      </section>
+
+      {/* CTA */}
+      <section className="max-w-7xl mx-auto px-8 pb-24">
+        <div className="rounded-3xl p-12 text-center logo-gradient-bg shadow-lg">
+          <h2 className="text-3xl font-bold text-white mb-3">Ready to get started?</h2>
+          <p className="text-white/75 text-sm mb-8 max-w-xl mx-auto leading-relaxed">
+            Sign in and create your first knowledge base in under 2 minutes.
+            No setup wizard, no credit card — just upload a document and start asking questions.
+          </p>
+          <div className="flex items-center justify-center gap-4 flex-wrap">
+            <Link href="/login" className="inline-flex items-center gap-2 bg-white text-slate-800 hover:bg-slate-50 font-bold text-sm px-8 py-3.5 rounded-xl transition-all shadow-md">
+              <Brain size={16} /> Start Using CogniBase
+            </Link>
+            <Link href="/compare" className="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 text-white border border-white/30 font-semibold text-sm px-8 py-3.5 rounded-xl transition-all">
+              <FileSearch size={16} /> Try Contract Compare
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-white/5 py-8 text-center text-xs text-slate-600">
-        © 2026 CogniBase · Brainium Information Technologies Pvt Ltd
+      <footer className="border-t border-slate-200 bg-white">
+        <div className="max-w-7xl mx-auto px-8 py-10 flex flex-col md:flex-row items-center justify-between gap-6">
+          <div>
+            <CogniBaseLogo height={32} variant="light" />
+            <p className="text-xs text-slate-400 mt-2">AI-Powered Knowledge Management</p>
+          </div>
+          <div className="flex items-center gap-8 text-xs text-slate-400">
+            <a href="#features"  className="hover:text-slate-600 transition-colors">Features</a>
+            <a href="#usecases"  className="hover:text-slate-600 transition-colors">Use Cases</a>
+            <a href="#tech"      className="hover:text-slate-600 transition-colors">Tech Stack</a>
+            <a href="#pricing"   className="hover:text-slate-600 transition-colors">Pricing</a>
+            <Link href="/login"  className="hover:text-slate-600 transition-colors">Sign In</Link>
+          </div>
+          <p className="text-xs text-slate-400">© 2026 Brainium Information Technologies Pvt Ltd</p>
+        </div>
       </footer>
     </div>
   );

@@ -84,7 +84,18 @@ async function processDocument(
 ) {
   const db = getDb();
   try {
-    // 1. Extract text
+    // 1. Extract text (auto-OCR for image-based PDFs)
+    const ext = filename.split(".").pop()?.toLowerCase() ?? "";
+    const isPdf = mimeType === "application/pdf" || ext === "pdf";
+    if (isPdf) {
+      // Pre-check: if it looks image-based, update status so UI shows "OCR Running"
+      const pdfParse = require("pdf-parse") as (buf: Buffer) => Promise<{ text: string }>;
+      const quick = await pdfParse(buffer).catch(() => ({ text: "" }));
+      const { isImagePdf } = await import("@/lib/ocr");
+      if (isImagePdf(quick.text, buffer.length)) {
+        db.prepare("UPDATE documents SET status = 'ocr' WHERE id = ?").run(docId);
+      }
+    }
     const text = await extractText(buffer, mimeType, filename);
 
     // 2. Chunk

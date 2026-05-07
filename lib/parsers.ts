@@ -21,6 +21,24 @@ export async function extractText(
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const pdfParse = require("pdf-parse") as (buf: Buffer) => Promise<{ text: string }>;
     const data = await pdfParse(buffer);
+
+    // Detect image-based / scanned PDF and fall back to OCR
+    const { isImagePdf, ocrPdf } = await import("./ocr");
+    if (isImagePdf(data.text, buffer.length)) {
+      console.log(`[parsers] Image-based PDF detected (${filename}), running OCR…`);
+      try {
+        const ocrText = await ocrPdf(buffer);
+        return ocrText;
+      } catch (ocrErr) {
+        console.error("[parsers] OCR failed:", ocrErr);
+        // Surface a clear error — don't silently return empty text
+        throw new Error(
+          `This PDF appears to be a scanned image. Automatic OCR failed: ${(ocrErr as Error).message}. ` +
+          `Please upload a text-based PDF, or convert the document using an OCR tool first.`
+        );
+      }
+    }
+
     return data.text;
   }
 

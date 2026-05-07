@@ -12,7 +12,7 @@ import { UserAvatar } from "@/components/UserAvatar";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 type KB = { id: number; name: string; description: string; summary: string | null; created_at: string; doc_count: number };
-type DocStatus = "ready" | "processing" | "error";
+type DocStatus = "ready" | "processing" | "ocr" | "error";
 type Doc = { id: number; filename: string; file_type: string; size_bytes: number; status: DocStatus; created_at: string; is_baseline: number };
 type RiskLevel = "low" | "medium" | "high" | "critical";
 type FindingType = "modified" | "missing" | "added" | "risky";
@@ -52,6 +52,11 @@ function StatusBadge({ status }: { status: DocStatus }) {
   if (status === "processing") return (
     <span className="flex items-center gap-1 text-xs font-medium text-amber-600 bg-amber-50 px-2.5 py-1 rounded-full">
       <Loader2 size={11} className="animate-spin" /> Processing
+    </span>
+  );
+  if (status === "ocr") return (
+    <span className="flex items-center gap-1 text-xs font-medium text-violet-600 bg-violet-50 px-2.5 py-1 rounded-full" title="Scanned PDF detected — running OCR">
+      <Loader2 size={11} className="animate-spin" /> OCR Running
     </span>
   );
   return (
@@ -124,7 +129,7 @@ export default function KBDetailPage() {
       const data: Doc[] = await res.json();
       if (Array.isArray(data)) {
         setDocs(data);
-        const processing = new Set(data.filter((d) => d.status === "processing").map((d) => d.id));
+        const processing = new Set(data.filter((d) => d.status === "processing" || d.status === "ocr").map((d) => d.id));
         setPollingIds(processing);
       }
     } catch {}
